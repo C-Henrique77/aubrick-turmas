@@ -1,0 +1,3835 @@
+<!DOCTYPE html>
+<!-- build: camisa-fix-redeploy -->
+
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>Colégio Aubrick — Turmas de Voleibol</title>
+<meta name="description" content="Gestão das turmas de voleibol do Colégio Aubrick"/>
+<meta name="theme-color" content="#0d3b8c"/>
+<link rel="manifest" href="manifest.json"/>
+<link rel="icon" href="icon-192.png" type="image/png"/>
+<link rel="apple-touch-icon" href="icon-192.png"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+<meta name="apple-mobile-web-app-title" content="Aubrick Turmas"/>
+<style>
+  :root{
+    --azul: #0d3b8c;
+    --azul2: #1e5fd9;
+    --amarelo: #ffc72c;
+    --amarelo2: #ffdd6b;
+    --bg: #f4f6fb;
+  }
+  *{box-sizing:border-box; -webkit-tap-highlight-color: rgba(13,59,140,0.25);}
+  button{ touch-action:manipulation; }
+  body{
+    margin:0;
+    font-family: 'Segoe UI', Arial, sans-serif;
+    background: var(--bg);
+    color:#1a1a2e;
+    padding-bottom:60px;
+  }
+  header{
+    background: linear-gradient(120deg, var(--azul) 0%, var(--azul2) 100%);
+    color:white;
+    padding:36px 20px 90px;
+    text-align:center;
+    position:relative;
+    overflow:hidden;
+  }
+  header::after{
+    content:"";
+    position:absolute;
+    bottom:-40px; left:0; right:0;
+    height:80px;
+    background: var(--amarelo);
+    border-radius:50% 50% 0 0 / 100% 100% 0 0;
+    transform: scaleX(1.3);
+  }
+  header h1{
+    margin:0;
+    font-size:2.2em;
+    letter-spacing:1px;
+  }
+  header .header-logo{
+    position:absolute;
+    top:16px;
+    left:20px;
+    height:82px;
+    width:auto;
+  }
+  @media (max-width:700px){
+    header{
+      padding:18px 16px 80px;
+    }
+    /* No celular a logo fica centralizada em cima do título, em vez de
+       flutuar por cima do texto — evita a logo "colada" no nome. */
+    header .header-logo{
+      position:static;
+      display:block;
+      height:54px;
+      margin:0 auto 10px;
+    }
+    header h1{
+      font-size:1.5em;
+      line-height:1.25;
+    }
+  }
+  header .stripe{
+    width:80px;height:5px;background:var(--amarelo);
+    margin:14px auto;border-radius:3px;
+  }
+  header p{
+    margin:6px 0 0;
+    font-size:1.05em;
+    opacity:0.9;
+  }
+  header p#unidadeLabel{
+    font-size:0.85em;
+    opacity:0.75;
+    margin-top:2px;
+  }
+  .unidade-seletor-admin{
+    margin-top:6px;
+    font-size:0.9em;
+    font-weight:700;
+    padding:6px 12px;
+    border-radius:14px;
+    border:1px solid rgba(255,255,255,0.6);
+    background:rgba(255,255,255,0.15);
+    color:white;
+  }
+  .unidade-seletor-admin option{
+    color:#1a1a2e;
+  }
+  .admin-badge{
+    background:rgba(255,199,44,0.9);
+    color:#1a1a2e;
+    font-weight:700;
+    padding:5px 12px;
+    border-radius:16px;
+  }
+  /* ---- Modo administrador: só visualização, nada pode ser editado ---- */
+  body.modo-admin input,
+  body.modo-admin select,
+  body.modo-admin textarea{
+    pointer-events:none !important;
+    background:#f0f1f5 !important;
+    opacity:0.85;
+  }
+  body.modo-admin .unidade-seletor-admin{
+    pointer-events:auto !important;
+    opacity:1;
+    background:rgba(255,255,255,0.15) !important;
+  }
+  body.modo-admin .add-student-btn,
+  body.modo-admin .add-student-form,
+  body.modo-admin .student-actions,
+  body.modo-admin .professor-edit-btn,
+  body.modo-admin .professor-remove-btn,
+  body.modo-admin .config-row{
+    display:none !important;
+  }
+  .tabs{
+    max-width:1100px;
+    margin:-50px auto 14px;
+    display:flex;
+    gap:14px;
+    flex-wrap:wrap;
+    justify-content:center;
+    position:relative;
+    z-index:2;
+    padding:0 15px;
+  }
+  .aviso-sem-professor{
+    max-width:520px;
+    margin:0 auto 24px;
+    padding:22px 24px;
+    background:white;
+    border:2px dashed var(--azul2);
+    border-radius:16px;
+    text-align:center;
+  }
+  .aviso-sem-professor p{
+    margin:0 0 14px;
+    font-weight:600;
+    color:#1a1a2e;
+  }
+  .aviso-sem-professor button{
+    background:var(--azul2);
+    color:white;
+    border:none;
+    padding:10px 20px;
+    border-radius:20px;
+    font-weight:700;
+    cursor:pointer;
+    font-size:0.95em;
+  }
+  body.modo-admin .aviso-sem-professor{
+    display:none !important;
+  }
+  .tab-btn{
+    background:white;
+    border:3px solid var(--azul);
+    color:var(--azul);
+    font-weight:700;
+    padding:13px 28px;
+    border-radius:40px;
+    cursor:pointer;
+    font-size:1em;
+    box-shadow:0 4px 10px rgba(0,0,0,0.12);
+    transition: all .2s ease;
+    display:flex;
+    align-items:center;
+    gap:6px;
+  }
+  .tab-btn:hover{
+    transform: translateY(-2px);
+    box-shadow:0 6px 14px rgba(0,0,0,0.18);
+  }
+  .tab-btn[data-target="master"]{ border-color:#0d3b8c; color:#0d3b8c; }
+  .tab-btn[data-target="mini"]{ border-color:#1e5fd9; color:#1e5fd9; }
+  .tab-btn[data-target="sub13"]{ border-color:#b8860a; color:#8a6508; }
+  .tab-btn[data-target="sub15"]{ border-color:#e0951a; color:#a5670c; }
+  .tab-btn[data-target="sub17"]{ border-color:#8c1e5f; color:#6e1849; }
+
+  .tab-btn[data-target="master"].active{ background:#0d3b8c; color:white; }
+  .tab-btn[data-target="mini"].active{ background:#1e5fd9; color:white; }
+  .tab-btn[data-target="sub13"].active{ background:#b8860a; color:white; }
+  .tab-btn[data-target="sub15"].active{ background:#e0951a; color:white; }
+  .tab-btn[data-target="sub17"].active{ background:#8c1e5f; color:white; }
+
+  .categorias-btn{
+    background:white;
+    border:3px solid var(--azul);
+    color:var(--azul);
+    font-weight:700;
+    padding:13px 28px;
+    border-radius:40px;
+    cursor:pointer;
+    font-size:1.05em;
+    box-shadow:0 4px 10px rgba(0,0,0,0.12);
+    transition: all .2s ease;
+    display:flex;
+    align-items:center;
+    gap:8px;
+  }
+  .categorias-btn:hover{
+    transform: translateY(-2px);
+    box-shadow:0 6px 14px rgba(0,0,0,0.18);
+  }
+  .categorias-btn .chevron{
+    font-size:0.85em;
+    opacity:0.7;
+  }
+
+  .modal-overlay{
+    position:fixed;
+    inset:0;
+    background:rgba(13,20,40,0.55);
+    z-index:1000;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    padding:20px;
+  }
+  .modal-categorias{
+    background:white;
+    border-radius:18px;
+    padding:26px 22px;
+    max-width:360px;
+    width:100%;
+    box-shadow:0 10px 40px rgba(0,0,0,0.3);
+  }
+  .modal-categorias h3{
+    margin:0 0 18px;
+    color:var(--azul);
+    text-align:center;
+  }
+  .modal-config{
+    max-width:440px;
+  }
+  .modal-config .sync-status{
+    margin-bottom:10px;
+  }
+  .modal-config .sync-bar{
+    background:#f4f6fb;
+    border-radius:12px;
+    padding:12px 10px;
+    margin-bottom:4px;
+    word-break:break-all;
+  }
+  .modal-transfer{
+    max-width:380px;
+  }
+  .transfer-aluno-nome{
+    text-align:center;
+    font-weight:700;
+    color:var(--azul);
+    background:#eef2fb;
+    padding:8px 14px;
+    border-radius:10px;
+    margin:0 0 18px;
+  }
+  .transfer-label{
+    display:block;
+    font-size:0.8em;
+    font-weight:700;
+    color:#8a8fa3;
+    text-transform:uppercase;
+    letter-spacing:0.03em;
+    margin:0 0 6px;
+  }
+  .transfer-select{
+    width:100%;
+    border:2px solid var(--azul2);
+    border-radius:10px;
+    padding:9px 10px;
+    font-size:0.95em;
+    font-weight:700;
+    color:var(--azul);
+    background:white;
+    margin-bottom:18px;
+  }
+  .transfer-select:focus{
+    outline:none;
+    border-color:var(--amarelo);
+  }
+  .transfer-professor-toggle{
+    display:flex;
+    gap:10px;
+    justify-content:center;
+    margin-bottom:22px;
+  }
+  .transfer-confirm-btn{
+    display:block;
+    width:100%;
+    background:var(--azul2);
+    color:white;
+    border:none;
+    font-weight:700;
+    padding:12px;
+    border-radius:24px;
+    cursor:pointer;
+    margin-bottom:10px;
+  }
+  .transfer-confirm-btn:hover{
+    background:var(--azul);
+  }
+  .modal-cat-list{
+    display:flex;
+    flex-direction:column;
+    gap:12px;
+  }
+  .modal-cat-list .tab-btn{
+    width:100%;
+    justify-content:space-between;
+  }
+  .modal-close-btn{
+    display:block;
+    width:100%;
+    margin-top:20px;
+    background:#eef1f8;
+    border:none;
+    color:var(--azul);
+    font-weight:700;
+    padding:12px;
+    border-radius:24px;
+    cursor:pointer;
+  }
+  .modal-close-btn:hover{
+    background:#e0e6f5;
+  }
+
+  /* ---- Horários de turma, chamada e relatório de presença ---- */
+  .modal-horarios{ max-width:420px; }
+  .modal-chamada{ max-width:480px; }
+  .modal-relatorio{ max-width:560px; }
+  .turma-toolbar{
+    display:flex;
+    gap:6px;
+    flex-wrap:wrap;
+    padding:10px 16px;
+    background:rgba(255,255,255,0.6);
+  }
+  .teacher-card.manoel .turma-toolbar{ background:rgba(255,255,255,0.35); }
+  .turma-btn{
+    background:white;
+    border:1px solid #d5dbeb;
+    color:#3a4363;
+    border-radius:20px;
+    padding:5px 12px;
+    font-size:0.8em;
+    font-weight:700;
+    cursor:pointer;
+    white-space:nowrap;
+  }
+  .turma-btn:hover{ background:#eef2fb; }
+  body.modo-admin .turma-horario-btn,
+  body.modo-admin .turma-chamada-btn{
+    display:none !important;
+  }
+  .horario-lista, .relatorio-resumo-lista{
+    list-style:none;
+    margin:0 0 10px;
+    padding:0;
+    display:flex;
+    flex-direction:column;
+    gap:6px;
+    max-height:320px;
+    overflow-y:auto;
+  }
+  .horario-item{
+    display:flex;
+    align-items:center;
+    gap:8px;
+    background:#f4f6fb;
+    border-radius:8px;
+    padding:8px 10px;
+    font-size:0.9em;
+    font-weight:600;
+    color:#3a4363;
+  }
+  .horario-remove-btn{
+    background:none;
+    border:none;
+    color:#c0392b;
+    cursor:pointer;
+    font-size:1em;
+    margin-left:auto;
+    padding:2px 4px;
+  }
+  .horario-vazio{
+    text-align:center;
+    color:#8a8fa3;
+    font-size:0.9em;
+    padding:10px 0;
+  }
+  .horario-add-row{
+    display:flex;
+    gap:6px;
+    margin-bottom:14px;
+  }
+  .horario-add-row select,
+  .horario-add-row input[type="time"]{
+    border:1px solid #d5dbeb;
+    border-radius:6px;
+    padding:7px 8px;
+    font-size:0.85em;
+    flex:1;
+    min-width:0;
+  }
+  .horario-add-row button{
+    background:var(--azul2);
+    color:white;
+    border:none;
+    border-radius:6px;
+    padding:0 12px;
+    font-weight:700;
+    cursor:pointer;
+    font-size:0.85em;
+    white-space:nowrap;
+  }
+  .chamada-data-row{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    justify-content:center;
+    margin-bottom:16px;
+  }
+  .chamada-data-row label{
+    font-weight:700;
+    color:var(--azul);
+    font-size:0.9em;
+  }
+  .chamada-data-row input[type="date"]{
+    border:2px solid var(--azul2);
+    border-radius:10px;
+    padding:7px 10px;
+    font-weight:700;
+    color:var(--azul);
+  }
+  .chamada-lista{
+    list-style:none;
+    margin:0 0 16px;
+    padding:0;
+    max-height:360px;
+    overflow-y:auto;
+  }
+  .chamada-item{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:10px;
+    padding:9px 6px;
+    border-bottom:1px solid #eef1f8;
+    font-size:0.9em;
+    font-weight:600;
+    color:#3a4363;
+  }
+  .chamada-toggle{
+    display:flex;
+    gap:4px;
+    flex-shrink:0;
+  }
+  .chamada-toggle button{
+    border:2px solid #d5dbeb;
+    background:white;
+    border-radius:20px;
+    padding:4px 12px;
+    font-size:0.8em;
+    font-weight:700;
+    cursor:pointer;
+    color:#8a8fa3;
+  }
+  .chamada-toggle button.presente.ativo{ background:#1e8f4e; border-color:#1e8f4e; color:white; }
+  .chamada-toggle button.falta.ativo{ background:#c0392b; border-color:#c0392b; color:white; }
+  body.modo-admin .chamada-toggle button{ pointer-events:none !important; opacity:0.7; }
+  .relatorio-tabs{
+    display:flex;
+    gap:8px;
+    margin-bottom:14px;
+    justify-content:center;
+  }
+  .relatorio-tab-btn{
+    border:2px solid var(--azul2);
+    background:white;
+    color:var(--azul);
+    border-radius:20px;
+    padding:6px 16px;
+    font-weight:700;
+    cursor:pointer;
+    font-size:0.85em;
+  }
+  .relatorio-tab-btn.active{ background:var(--azul2); color:white; }
+  .relatorio-resumo-item{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    background:#f4f6fb;
+    border-radius:8px;
+    padding:8px 10px;
+    font-size:0.9em;
+    font-weight:600;
+    color:#3a4363;
+  }
+  .relatorio-pct{ font-weight:800; white-space:nowrap; }
+  .relatorio-pct.alto{ color:#1e8f4e; }
+  .relatorio-pct.medio{ color:#a5670c; }
+  .relatorio-pct.baixo{ color:#c0392b; }
+  .relatorio-historico-wrap{
+    overflow-x:auto;
+    margin-bottom:10px;
+    max-height:360px;
+    overflow-y:auto;
+  }
+  table.relatorio-historico{
+    border-collapse:collapse;
+    width:100%;
+    font-size:0.78em;
+  }
+  table.relatorio-historico th,
+  table.relatorio-historico td{
+    border:1px solid #eef1f8;
+    padding:6px 8px;
+    text-align:center;
+    white-space:nowrap;
+  }
+  table.relatorio-historico th:first-child,
+  table.relatorio-historico td:first-child{
+    text-align:left;
+    position:sticky;
+    left:0;
+    background:white;
+  }
+  .presenca-sim{ color:#1e8f4e; font-weight:800; }
+  .presenca-nao{ color:#c0392b; font-weight:800; }
+
+  .modal-foto{ max-width:360px; text-align:center; }
+  .foto-preview-wrap{ margin:10px 0; display:flex; justify-content:center; }
+  .foto-preview{
+    width:160px; height:160px; border-radius:50%; object-fit:cover;
+    border:3px solid #e3e7f2;
+  }
+  .foto-preview-vazio{
+    width:160px; height:160px; border-radius:50%; background:#eef1f8;
+    display:flex; align-items:center; justify-content:center;
+    color:#8a93ad; font-size:0.85em; border:3px dashed #e3e7f2; text-align:center;
+    padding:0 12px;
+  }
+  .foto-acoes{ display:flex; flex-direction:column; gap:8px; margin:10px 0; }
+  .foto-acao-btn{
+    border:2px solid var(--azul2); background:white; color:var(--azul);
+    border-radius:20px; padding:10px 16px; font-weight:700; cursor:pointer; font-size:0.9em;
+  }
+  .foto-acao-btn.remover{ border-color:#c0392b; color:#c0392b; }
+  .foto-status-msg{ font-size:0.85em; color:#3a4363; min-height:1.2em; margin-bottom:8px; }
+  @media(max-width:700px){
+    .modal-horarios, .modal-chamada, .modal-relatorio, .modal-foto, .modal-detalhes-aluno{ max-width:94vw; }
+    .horario-add-row{ flex-wrap:wrap; }
+    .horario-add-row select, .horario-add-row input[type="time"]{ flex:1 1 100%; }
+  }
+
+  .count-badge{
+    background:var(--amarelo);
+    color:var(--azul);
+    border-radius:10px;
+    padding:1px 8px;
+    font-size:0.8em;
+    margin-left:2px;
+    font-weight:800;
+  }
+  .tab-btn.active .count-badge{
+    background:rgba(255,255,255,0.85);
+  }
+
+  .tabs-divider{
+    max-width:1100px;
+    margin:0 auto 26px;
+    padding:0 15px;
+  }
+  .tabs-divider hr{
+    border:none;
+    height:3px;
+    background: repeating-linear-gradient(90deg, var(--amarelo) 0 14px, transparent 14px 22px);
+    border-radius:3px;
+  }
+
+  .content{
+    max-width:1100px;
+    margin:0 auto;
+    padding:0 15px;
+  }
+  .category-section{
+    display:none;
+  }
+  .category-section.active{
+    display:block;
+    animation: fadeIn .35s ease;
+  }
+  @keyframes fadeIn{
+    from{opacity:0; transform:translateY(8px);}
+    to{opacity:1; transform:translateY(0);}
+  }
+
+  .cat-title{
+    text-align:center;
+    color:var(--azul);
+    font-size:1.6em;
+    margin:10px 0 24px;
+    position:relative;
+  }
+  .cat-title span{
+    background:var(--amarelo2);
+    padding:4px 22px;
+    border-radius:30px;
+  }
+  .cat-master span{ background:#dfe8fb; color:#0d3b8c; }
+  .cat-mini span{ background:#dfe8fb; color:#1e5fd9; }
+  .cat-sub13 span{ background:#fbeece; color:#8a6508; }
+  .cat-sub15 span{ background:#fde3c2; color:#a5670c; }
+  .cat-sub17 span{ background:#f4dcec; color:#6e1849; }
+
+  .teacher-grid{
+    display:grid;
+    grid-template-columns: 1fr 1fr;
+    gap:24px;
+  }
+  @media (max-width:700px){
+    .teacher-grid{grid-template-columns: 1fr;}
+  }
+
+  .teacher-card{
+    background:white;
+    border-radius:16px;
+    box-shadow:0 6px 18px rgba(13,59,140,0.12);
+    overflow:hidden;
+    border-top:6px solid var(--azul);
+  }
+  .teacher-card.rafa{ border-top-color: var(--azul2); }
+  .teacher-card.manoel{ border-top-color: var(--amarelo); }
+
+  .teacher-header{
+    padding:16px 20px;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    background: linear-gradient(90deg, var(--azul), var(--azul2));
+    color:white;
+  }
+  .teacher-card.manoel .teacher-header{
+    background: linear-gradient(90deg, #b8860a, var(--amarelo));
+    color:#3a2a00;
+  }
+  .teacher-header h3{
+    margin:0;
+    font-size:1.2em;
+  }
+  .teacher-header .badge{
+    background:rgba(255,255,255,0.25);
+    padding:3px 12px;
+    border-radius:20px;
+    font-size:0.85em;
+    font-weight:700;
+  }
+
+  ul.student-list{
+    list-style:none;
+    margin:0;
+    padding:10px 20px 16px;
+  }
+  ul.student-list li.student-row{
+    padding:10px 0;
+    border-bottom:1px dashed #e0e4ee;
+    display:flex;
+    flex-direction:column;
+    gap:8px;
+  }
+  ul.student-list li.student-row:last-child{border-bottom:none;}
+
+  .student-main{
+    display:flex;
+    align-items:center;
+    gap:10px;
+  }
+  .student-foto{
+    width:34px;
+    height:34px;
+    border-radius:50%;
+    flex-shrink:0;
+    border:2px solid #e3e7f2;
+    background-color:#eef1f8;
+    background-position:center;
+    background-size:cover;
+    background-repeat:no-repeat;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    padding:0;
+    font-size:0.95em;
+    cursor:default;
+  }
+  .student-foto.clicavel{ cursor:pointer; }
+  .student-foto.clicavel:hover{ border-color:var(--azul2); }
+  .student-foto.sem-foto::before{ content:'👤'; opacity:0.4; }
+  .student-foto.sem-foto.clicavel::before{ content:'📷'; opacity:0.65; }
+  .student-name-wrap{
+    display:flex;
+    align-items:center;
+    gap:8px;
+    flex:1;
+    min-width:0;
+  }
+  .student-name{
+    font-size:0.98em;
+    font-weight:600;
+    color:#1a1a2e;
+  }
+  .camisa-input{
+    width:40px;
+    flex-shrink:0;
+    border:1px solid #d5dbeb;
+    border-radius:6px;
+    padding:3px 4px;
+    text-align:center;
+    font-size:0.85em;
+    font-weight:700;
+    color:var(--azul);
+  }
+  .camisa-input:focus{
+    outline:none;
+    border-color:var(--amarelo);
+  }
+  .camisa-input::placeholder{
+    color:#b7bcd0;
+    font-weight:400;
+  }
+
+  /* Escondido por padrão — só aparece quando "emprestado" pro modal de
+     detalhes do aluno (ver abrirModalDetalhesAluno). O seletor com ">"
+     garante que, assim que o próprio elemento é movido pra dentro do
+     modal, ele deixa de bater com essa regra e some a necessidade de
+     escondê-lo manualmente. */
+  li.student-row > .student-extra{
+    display:none;
+  }
+  #detalhesAlunoCorpo .student-extra{
+    display:flex;
+    flex-direction:column;
+    align-items:stretch;
+    gap:14px;
+  }
+  .extra-field{
+    display:flex;
+    align-items:center;
+    gap:5px;
+    font-size:0.78em;
+    color:#8a8fa3;
+    font-weight:600;
+  }
+  #detalhesAlunoCorpo .extra-field{
+    font-size:0.85em;
+  }
+  .nasc-input{
+    width:132px;
+    border:1px solid #d5dbeb;
+    border-radius:6px;
+    padding:3px 6px;
+    font-size:0.85em;
+    color:#3a3f55;
+    font-family:inherit;
+  }
+  /* "Nasc." quando promovido pra linha principal (ver
+     promoverNascimentoParaLinha) — mais compacto que a versão de dentro
+     do modal de detalhes. */
+  .nasc-inline{
+    font-size:0.72em;
+    flex-shrink:0;
+  }
+  .nasc-inline .nasc-input{
+    width:108px;
+  }
+  .liga-field{
+    color:var(--azul);
+    background:#eef2fb;
+    padding:4px 10px;
+    border-radius:20px;
+    cursor:pointer;
+  }
+  .liga-check{
+    width:14px;height:14px;
+    accent-color: var(--azul2);
+    cursor:pointer;
+  }
+  .eventos-field{
+    flex:1;
+    min-width:160px;
+  }
+  .eventos-input{
+    flex:1;
+    min-width:140px;
+    border:1px solid #d5dbeb;
+    border-radius:6px;
+    padding:3px 8px;
+    font-size:0.85em;
+    color:#3a3f55;
+  }
+  .nasc-input:focus, .eventos-input:focus{
+    outline:none;
+    border-color:var(--amarelo);
+  }
+  #detalhesAlunoCorpo .liga-field{
+    align-self:flex-start;
+  }
+  #detalhesAlunoCorpo .eventos-field{
+    flex-direction:column;
+    align-items:stretch;
+    min-width:0;
+  }
+  #detalhesAlunoCorpo .eventos-input{
+    min-width:0;
+  }
+
+  .sub-block-title{
+    background:var(--bg);
+    color:var(--azul);
+    font-weight:700;
+    padding:6px 20px;
+    font-size:0.9em;
+    border-top:1px solid #e0e4ee;
+    border-bottom:1px solid #e0e4ee;
+  }
+
+  footer{
+    text-align:center;
+    color:#8a8fa3;
+    font-size:0.85em;
+    margin-top:40px;
+  }
+
+  .nivel-select{
+    width:34px;
+    height:28px;
+    text-align:center;
+    text-align-last:center;
+    border:2px solid var(--azul2);
+    border-radius:6px;
+    background:white;
+    color:var(--azul);
+    font-weight:700;
+    font-size:0.9em;
+    flex-shrink:0;
+    cursor:pointer;
+    -webkit-appearance:none;
+    appearance:none;
+    padding:0;
+  }
+  .nivel-select:focus{
+    outline:none;
+    border-color:var(--amarelo);
+  }
+  @media (max-width:700px){
+    .nivel-select{
+      width:52px;
+      height:38px;
+      font-size:1.15em;
+    }
+    .student-name{
+      font-size:1.05em;
+    }
+    .camisa-input{
+      width:44px;
+      height:32px;
+      font-size:1em;
+    }
+    .nasc-input{
+      width:140px;
+      height:32px;
+      font-size:0.95em;
+    }
+    .student-main{
+      flex-wrap:wrap;
+      row-gap:8px;
+    }
+    .nasc-inline{
+      order:5;
+      flex-basis:100%;
+      margin-left:44px;
+      font-size:0.82em;
+    }
+    .nasc-inline .nasc-input{
+      width:160px;
+      height:32px;
+      font-size:0.95em;
+    }
+    .student-mais-btn{
+      font-size:1.25em;
+      padding:6px 12px;
+    }
+    .acao-btn{
+      font-size:1.2em;
+      padding:5px 8px;
+    }
+    .filter-btn,
+    .view-switch-btn,
+    .tab-btn,
+    .categorias-btn{
+      min-height:44px;
+      padding-top:10px;
+      padding-bottom:10px;
+    }
+  }
+  .nivel-readonly{
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    width:34px;
+    height:28px;
+    border:2px solid var(--azul2);
+    border-radius:6px;
+    background:#eef2fb;
+    color:var(--azul);
+    font-weight:700;
+    font-size:0.9em;
+    flex-shrink:0;
+  }
+  .campo-readonly{
+    display:inline-flex;
+    align-items:center;
+    border:1px solid #d5dbeb;
+    border-radius:6px;
+    padding:3px 8px;
+    font-size:0.85em;
+    color:#5a6178;
+    background:#f4f6fb;
+  }
+  .camisa-readonly{
+    justify-content:center;
+    min-width:32px;
+  }
+  .eventos-readonly{
+    flex:1;
+    min-width:140px;
+  }
+
+  /* ---- Filtro por professor dentro de cada categoria ---- */
+  .teacher-filter{
+    display:flex;
+    gap:10px;
+    justify-content:center;
+    flex-wrap:wrap;
+    margin:0 0 22px;
+  }
+  .filter-btn{
+    background:white;
+    border:2px solid var(--azul2);
+    color:var(--azul2);
+    font-weight:700;
+    padding:7px 18px;
+    border-radius:20px;
+    cursor:pointer;
+    font-size:0.85em;
+    transition: all .2s ease;
+  }
+  .filter-btn:hover{
+    box-shadow:0 3px 8px rgba(0,0,0,0.12);
+  }
+  .filter-btn.active{
+    background:var(--azul2);
+    color:white;
+  }
+  .teacher-card.hidden-by-filter{
+    display:none;
+  }
+  .teacher-grid.single-card{
+    grid-template-columns: 1fr;
+    max-width:560px;
+    margin:0 auto;
+  }
+
+  /* ---- Botão de adicionar aluno ---- */
+  .add-student-btn{
+    display:block;
+    width:calc(100% - 40px);
+    margin:6px 20px 16px;
+    background:var(--bg);
+    border:2px dashed #c7cfe6;
+    color:var(--azul2);
+    font-weight:800;
+    font-size:1.15em;
+    padding:8px;
+    border-radius:10px;
+    cursor:pointer;
+    transition: all .2s ease;
+  }
+  .add-student-btn:hover{
+    background:#eef2fb;
+    border-color:var(--azul2);
+  }
+  .add-student-form{
+    display:flex;
+    gap:6px;
+    margin:0 20px 16px;
+  }
+  .add-student-form input{
+    flex:1;
+    border:1px solid #d5dbeb;
+    border-radius:6px;
+    padding:7px 10px;
+    font-size:0.9em;
+  }
+  .add-student-form input:focus{
+    outline:none;
+    border-color:var(--amarelo);
+  }
+  .add-student-form button{
+    background:var(--azul2);
+    color:white;
+    border:none;
+    border-radius:6px;
+    padding:0 14px;
+    font-weight:700;
+    cursor:pointer;
+    font-size:0.9em;
+  }
+  .add-student-form button.cancelar{
+    background:#c0392b;
+  }
+
+  /* ---- Login / usuário ---- */
+  #loginScreen{
+    position:fixed;
+    inset:0;
+    background: linear-gradient(120deg, var(--azul), var(--azul2));
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    z-index:999;
+    padding:20px;
+  }
+  .login-logo{
+    display:block;
+    width:110px;
+    height:auto;
+    margin:0 auto 14px;
+  }
+  .login-box{
+    background:white;
+    border-radius:18px;
+    padding:34px 28px;
+    width:100%;
+    max-width:360px;
+    box-shadow:0 10px 40px rgba(0,0,0,0.3);
+  }
+  .login-box h2{
+    margin:0 0 4px;
+    color:var(--azul);
+    text-align:center;
+  }
+  .login-box p.sub{
+    text-align:center;
+    color:#8a8fa3;
+    font-size:0.85em;
+    margin:0 0 20px;
+  }
+  .login-box input{
+    width:100%;
+    padding:11px 13px;
+    margin-bottom:12px;
+    border:1px solid #d5dbeb;
+    border-radius:8px;
+    font-size:0.95em;
+  }
+  .login-box input:focus{
+    outline:none;
+    border-color:var(--amarelo);
+  }
+  .login-box button.login-submit{
+    width:100%;
+    background:var(--azul2);
+    color:white;
+    border:none;
+    padding:12px;
+    border-radius:24px;
+    font-weight:700;
+    cursor:pointer;
+    font-size:1em;
+    margin-top:4px;
+  }
+  .login-box button.login-submit:hover{
+    background:var(--azul);
+  }
+  .login-toggle{
+    text-align:center;
+    margin-top:16px;
+    font-size:0.85em;
+    color:var(--azul2);
+    cursor:pointer;
+    text-decoration:underline;
+  }
+  .login-error{
+    color:#c0392b;
+    font-size:0.82em;
+    text-align:center;
+    margin:-6px 0 12px;
+    min-height:16px;
+  }
+  .login-loading{
+    text-align:center;
+    color:#8a8fa3;
+    font-size:0.85em;
+  }
+  .user-bar{
+    position:absolute;
+    top:14px;
+    right:20px;
+    display:flex;
+    align-items:center;
+    gap:10px;
+    font-size:0.82em;
+    z-index:3;
+  }
+  .user-bar span{
+    opacity:0.9;
+  }
+  .user-bar button{
+    background:rgba(255,255,255,0.2);
+    border:1px solid rgba(255,255,255,0.55);
+    color:white;
+    padding:5px 14px;
+    border-radius:16px;
+    cursor:pointer;
+    font-size:0.85em;
+  }
+  .user-bar button:hover{
+    background:rgba(255,255,255,0.35);
+  }
+  @media (max-width:700px){
+    .user-bar{
+      position:static;
+      justify-content:center;
+      flex-wrap:wrap;
+      margin:0 0 12px;
+      font-size:0.78em;
+      gap:8px;
+    }
+    .user-bar button{
+      padding:4px 11px;
+    }
+  }
+  .sync-status{
+    text-align:center;
+    font-size:0.85em;
+    color:#8a8fa3;
+    margin:0 auto 14px;
+  }
+  .sync-bar{
+    margin:0 auto 6px;
+    padding:8px 0;
+    display:flex;
+    gap:10px;
+    align-items:center;
+    justify-content:center;
+    flex-wrap:wrap;
+    font-size:0.85em;
+    color:#5a6178;
+  }
+  .sync-mini-btn{
+    background:white;
+    border:1px solid #d5dbeb;
+    color:var(--azul2);
+    font-weight:700;
+    padding:4px 12px;
+    border-radius:16px;
+    cursor:pointer;
+    font-size:0.85em;
+  }
+  .sync-mini-btn:hover{
+    background:#eef2fb;
+  }
+  .sync-join-form{
+    max-width:400px;
+    margin:0 auto 16px;
+    display:flex;
+    gap:6px;
+    padding:0 15px;
+  }
+  .sync-join-form input{
+    flex:1;
+    border:1px solid #d5dbeb;
+    border-radius:6px;
+    padding:7px 10px;
+    font-size:0.9em;
+  }
+  .sync-join-form button{
+    background:var(--azul2);
+    color:white;
+    border:none;
+    border-radius:6px;
+    padding:0 14px;
+    font-weight:700;
+    cursor:pointer;
+    font-size:0.9em;
+  }
+  .sync-join-form button.cancelar{
+    background:#c0392b;
+  }
+
+  /* ---- Configurações: unidade e professores ---- */
+  .config-section{
+    margin:0 0 20px;
+    padding-top:16px;
+    border-top:1px dashed #e0e4ee;
+  }
+  .config-section:first-of-type{
+    border-top:none;
+    padding-top:0;
+  }
+  .config-label{
+    display:block;
+    font-size:0.8em;
+    font-weight:700;
+    color:#8a8fa3;
+    text-transform:uppercase;
+    letter-spacing:0.03em;
+    margin:0 0 8px;
+  }
+  .config-row{
+    display:flex;
+    gap:6px;
+  }
+  .config-row input{
+    flex:1;
+    border:1px solid #d5dbeb;
+    border-radius:6px;
+    padding:7px 10px;
+    font-size:0.9em;
+  }
+  .config-row button{
+    background:var(--azul2);
+    color:white;
+    border:none;
+    border-radius:6px;
+    padding:0 14px;
+    font-weight:700;
+    cursor:pointer;
+    font-size:0.9em;
+    white-space:nowrap;
+  }
+  .professores-lista{
+    list-style:none;
+    margin:0 0 10px;
+    padding:0;
+    display:flex;
+    flex-direction:column;
+    gap:6px;
+  }
+  .professor-item{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    background:#f4f6fb;
+    border-radius:8px;
+    padding:6px 10px;
+    font-size:0.9em;
+    font-weight:600;
+    color:#3a4363;
+  }
+  .item-btns{
+    display:flex;
+    gap:2px;
+    flex-shrink:0;
+  }
+  .professor-edit-btn,
+  .professor-remove-btn{
+    background:none;
+    border:none;
+    cursor:pointer;
+    font-size:0.9em;
+    padding:2px 4px;
+  }
+  .unidades-lista{
+    list-style:none;
+    margin:0 0 10px;
+    padding:0;
+    display:flex;
+    flex-direction:column;
+    gap:6px;
+  }
+  .unidade-item{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    background:#f4f6fb;
+    border-radius:8px;
+    padding:2px 6px 2px 2px;
+    font-size:0.9em;
+  }
+  .unidade-item.ativa{
+    background:#e3ecff;
+  }
+  .unidade-select-btn{
+    background:none;
+    border:none;
+    cursor:pointer;
+    text-align:left;
+    flex:1;
+    padding:6px 8px;
+    font-size:1em;
+    font-weight:600;
+    color:#3a4363;
+  }
+
+  /* ---- Ações por aluno: editar nome / excluir ---- */
+  /* Escondido por padrão — só aparece quando "emprestado" pro modal de
+     detalhes do aluno (mesmo esquema do .student-extra acima). */
+  .student-main > .student-actions{
+    display:none;
+  }
+  .student-actions{
+    display:flex;
+    gap:4px;
+    flex-shrink:0;
+  }
+  #detalhesAlunoCorpo .student-actions{
+    flex-direction:column;
+    gap:8px;
+    margin-top:6px;
+    padding-top:14px;
+    border-top:1px dashed #e0e4ee;
+  }
+  .acao-btn{
+    background:none;
+    border:none;
+    cursor:pointer;
+    font-size:0.95em;
+    padding:3px 6px;
+    border-radius:6px;
+    line-height:1;
+  }
+  .acao-btn:hover{
+    background:#eef2fb;
+  }
+  .acao-btn.excluir:hover{
+    background:#fbe4e1;
+  }
+  #detalhesAlunoCorpo .acao-btn{
+    text-align:left;
+    padding:10px 14px;
+    background:#f7f8fc;
+    border-radius:10px;
+    font-size:0.95em;
+    font-weight:600;
+    color:#3a3f55;
+  }
+  #detalhesAlunoCorpo .acao-btn:hover{
+    background:#eef2fb;
+  }
+  #detalhesAlunoCorpo .acao-btn.excluir{
+    color:#b3261e;
+  }
+  #detalhesAlunoCorpo .acao-btn.excluir:hover{
+    background:#fbe4e1;
+  }
+  .student-mais-btn{
+    background:#eef2fb;
+    border:none;
+    color:var(--azul);
+    cursor:pointer;
+    font-weight:700;
+    font-size:1.05em;
+    padding:4px 10px;
+    border-radius:14px;
+    line-height:1;
+    flex-shrink:0;
+  }
+  .student-mais-btn:hover{
+    background:#dfe6f7;
+  }
+  .modal-detalhes-aluno{
+    max-width:380px;
+  }
+  .modal-detalhes-aluno h3{
+    word-break:break-word;
+  }
+  .nome-edit-input{
+    font-size:0.98em;
+    font-weight:600;
+    color:#1a1a2e;
+    border:1px solid var(--azul2);
+    border-radius:6px;
+    padding:2px 6px;
+    flex:1;
+    min-width:0;
+  }
+  #master .liga-field{
+    display:none;
+  }
+</style>
+</head>
+<body>
+<div id="loginScreen">
+  <div class="login-box">
+    <h2>Colégio Aubrick</h2>
+    <p class="sub">Digite a senha de acesso da equipe</p>
+    <div class="login-error" id="loginError"></div>
+    <input id="loginSenha" placeholder="Senha de acesso" type="password" autocomplete="current-password"/>
+    <button class="login-submit" id="loginSubmitBtn" onclick="tentarLogin()">Entrar</button>
+    <div class="login-loading" id="loginLoading" style="display:none;">Conectando…</div>
+  </div>
+</div>
+<div id="appContent" style="display:none;">
+<header>
+<div class="user-bar">
+  <span id="adminBadge" class="admin-badge" style="display:none;">👁️ Somente leitura</span>
+  <button id="btnInstalarApp" onclick="instalarApp()" style="display:none;">⬇️ Instalar app</button>
+  <button type="button" onclick="abrirModalConfiguracoes()">⚙️ Configurações</button>
+  <button type="button" id="btnGerarCompartilhar" onclick="exportarPlanilhaUnidade()">📊 Exportar planilha</button>
+  <button onclick="fazerLogout()">Sair</button>
+</div>
+<h1>Colégio Aubrick</h1>
+<div class="stripe"></div>
+<p>Turmas de Voleibol</p>
+<p id="unidadeLabel">📍 Colégio Aubrick</p>
+<select id="unidadeSeletorAdmin" class="unidade-seletor-admin" style="display:none;" onchange="trocarUnidadeAdmin(this.value)"></select>
+</header>
+<div class="tabs">
+<button type="button" id="btnCategorias" class="categorias-btn" onclick="abrirModalCategorias()">
+  📋 <span id="categoriaAtualLabel">6º ano</span> <span class="count-badge" id="categoriaAtualBadge">19</span> <span class="chevron">▾</span>
+</button>
+</div>
+<div id="modalCategorias" class="modal-overlay" style="display:none;" onclick="if(event.target===this) fecharModalCategorias();">
+  <div class="modal-categorias">
+    <h3>Escolha a categoria</h3>
+    <div class="modal-cat-list">
+      <button class="tab-btn active" data-target="master">🏐 6º ano <span class="count-badge">19</span></button>
+      <button class="tab-btn" data-target="mini">🏐 7º ano A <span class="count-badge">14</span></button>
+      <button class="tab-btn" data-target="sub13">🏐 7º ano B <span class="count-badge">14</span></button>
+      <button class="tab-btn" data-target="sub15">🏐 8º ano <span class="count-badge">11</span></button>
+      <button class="tab-btn" data-target="sub17">🏐 9º ao médio <span class="count-badge">0</span></button>
+    </div>
+    <button type="button" class="modal-close-btn" onclick="fecharModalCategorias()">Fechar</button>
+  </div>
+</div>
+<div class="tabs-divider"><hr></div>
+<div id="modalConfiguracoes" class="modal-overlay" style="display:none;" onclick="if(event.target===this) fecharModalConfiguracoes();">
+  <div class="modal-categorias modal-config">
+    <h3>⚙️ Configurações</h3>
+    <p class="sync-status" id="syncStatus"></p>
+    <div class="config-section">
+      <label class="config-label">🧑‍🏫 Professores</label>
+      <ul class="professores-lista" id="professoresLista"></ul>
+      <div class="config-row">
+        <input id="novoProfessorInput" type="text" placeholder="Nome do novo professor"/>
+        <button type="button" onclick="adicionarProfessor()">+ Adicionar</button>
+      </div>
+    </div>
+    <button type="button" class="modal-close-btn" onclick="fecharModalConfiguracoes()">Fechar</button>
+  </div>
+</div>
+<div id="modalTransferir" class="modal-overlay" style="display:none;" onclick="if(event.target===this) fecharModalTransferir();">
+  <div class="modal-categorias modal-transfer">
+    <h3>🔄 Transferir aluno</h3>
+    <p class="transfer-aluno-nome" id="transferAlunoNome"></p>
+    <label class="transfer-label">Categoria</label>
+    <select id="transferCategoriaSelect" class="transfer-select">
+      <option value="master">Master</option>
+      <option value="mini">Mini</option>
+      <option value="sub13">Sub-13</option>
+      <option value="sub15">Sub-15</option>
+      <option value="sub17">Sub-17</option>
+    </select>
+    <label class="transfer-label">Professor</label>
+    <div class="transfer-professor-toggle">
+      <button type="button" class="filter-btn active" data-professor="rafa" onclick="selecionarProfessorTransferencia('rafa', this)">Rafa</button>
+      <button type="button" class="filter-btn" data-professor="manoel" onclick="selecionarProfessorTransferencia('manoel', this)">Manoel</button>
+    </div>
+    <button type="button" class="transfer-confirm-btn" onclick="confirmarTransferencia()">Transferir</button>
+    <button type="button" class="modal-close-btn" onclick="fecharModalTransferir()">Cancelar</button>
+  </div>
+</div>
+<div id="modalHorarios" class="modal-overlay" style="display:none;" onclick="if(event.target===this) fecharModalHorarios();">
+  <div class="modal-categorias modal-horarios">
+    <h3>🗓️ Horários — <span id="horarioTurmaNome"></span></h3>
+    <ul class="horario-lista" id="horarioLista"></ul>
+    <div class="horario-add-row">
+      <select id="horarioDiaInput">
+        <option value="Segunda">Segunda</option>
+        <option value="Terça">Terça</option>
+        <option value="Quarta">Quarta</option>
+        <option value="Quinta">Quinta</option>
+        <option value="Sexta">Sexta</option>
+        <option value="Sábado">Sábado</option>
+        <option value="Domingo">Domingo</option>
+      </select>
+      <input id="horarioHoraInput" type="time" value="18:00"/>
+      <button type="button" onclick="adicionarHorario()">+ Adicionar</button>
+    </div>
+    <button type="button" class="modal-close-btn" onclick="fecharModalHorarios()">Fechar</button>
+  </div>
+</div>
+<div id="modalChamada" class="modal-overlay" style="display:none;" onclick="if(event.target===this) fecharModalChamada();">
+  <div class="modal-categorias modal-chamada">
+    <h3>✅ Chamada — <span id="chamadaTurmaNome"></span></h3>
+    <div class="chamada-data-row">
+      <label for="chamadaDataInput">Data</label>
+      <input id="chamadaDataInput" onchange="carregarChamadaData()" type="date"/>
+    </div>
+    <ul class="chamada-lista" id="chamadaLista"></ul>
+    <button type="button" class="transfer-confirm-btn" onclick="fecharModalChamada()">Concluir</button>
+  </div>
+</div>
+<div id="modalRelatorio" class="modal-overlay" style="display:none;" onclick="if(event.target===this) fecharModalRelatorio();">
+  <div class="modal-categorias modal-relatorio">
+    <h3>📊 Relatório — <span id="relatorioTurmaNome"></span></h3>
+    <div class="relatorio-tabs">
+      <button type="button" class="relatorio-tab-btn active" data-tab="resumo" onclick="alternarAbaRelatorio('resumo')">Resumo por aluno</button>
+      <button type="button" class="relatorio-tab-btn" data-tab="historico" onclick="alternarAbaRelatorio('historico')">Histórico</button>
+    </div>
+    <div id="relatorioResumoWrap">
+      <ul class="relatorio-resumo-lista" id="relatorioResumoLista"></ul>
+    </div>
+    <div id="relatorioHistoricoWrap" class="relatorio-historico-wrap" style="display:none;">
+      <table class="relatorio-historico" id="relatorioHistoricoTabela"></table>
+    </div>
+    <button type="button" class="modal-close-btn" onclick="fecharModalRelatorio()">Fechar</button>
+  </div>
+</div>
+<div id="modalFoto" class="modal-overlay" style="display:none;" onclick="if(event.target===this) fecharModalFoto();">
+  <div class="modal-categorias modal-foto">
+    <h3>📷 Foto — <span id="fotoAlunoNome"></span></h3>
+    <div class="foto-preview-wrap">
+      <img id="fotoPreviewImg" class="foto-preview" style="display:none;" alt="Foto do aluno"/>
+      <div id="fotoPreviewVazio" class="foto-preview-vazio">Sem foto ainda</div>
+    </div>
+    <div class="foto-acoes">
+      <button type="button" class="foto-acao-btn" onclick="document.getElementById('fotoInputCamera').click()">📷 Tirar foto agora</button>
+      <button type="button" class="foto-acao-btn" onclick="document.getElementById('fotoInputGaleria').click()">🖼️ Escolher da galeria</button>
+      <button type="button" class="foto-acao-btn remover" id="fotoRemoverBtn" onclick="removerFotoAluno()" style="display:none;">🗑️ Remover foto</button>
+    </div>
+    <div id="fotoStatusMsg" class="foto-status-msg"></div>
+    <input type="file" id="fotoInputCamera" accept="image/*" capture="environment" style="display:none;" onchange="processarFotoSelecionada(this.files[0])"/>
+    <input type="file" id="fotoInputGaleria" accept="image/*" style="display:none;" onchange="processarFotoSelecionada(this.files[0])"/>
+    <button type="button" class="modal-close-btn" onclick="fecharModalFoto()">Fechar</button>
+  </div>
+</div>
+<div id="modalDetalhesAluno" class="modal-overlay" style="display:none;" onclick="if(event.target===this) fecharModalDetalhesAluno();">
+  <div class="modal-categorias modal-detalhes-aluno">
+    <h3>👤 <span id="detalhesAlunoNome"></span></h3>
+    <div id="detalhesAlunoCorpo"></div>
+    <button type="button" class="modal-close-btn" onclick="fecharModalDetalhesAluno()">Fechar</button>
+  </div>
+</div>
+<div id="avisoSemProfessor" class="aviso-sem-professor" style="display:none;">
+  <p>👋 Essa unidade ainda não tem nenhum professor cadastrado.</p>
+  <button type="button" onclick="abrirConfiguracoesParaAdicionarProfessor()">+ Cadastrar primeiro professor</button>
+</div>
+<div class="content">
+<!-- MASTER -->
+<section class="category-section active" id="master">
+<div class="cat-title cat-master"><span>6º ano</span></div>
+<div class="teacher-filter" data-section="master">
+<button class="filter-btn active" data-filter="rafa" onclick="filtrarProfessor('master','rafa',this)">Rafa</button>
+</div>
+<div class="teacher-grid">
+<div class="teacher-card rafa">
+<div class="teacher-header">
+<h3>Rafa</h3>
+<span class="badge">19 alunos</span>
+</div>
+<ul class="student-list">
+<li class="student-row"><div class="student-main"><span class="student-name-wrap"><span class="student-name">Alice Correa Taveira</span><input class="camisa-input" id="camisa-1" onchange="saveCampo(this)" placeholder="Nº" title="Número da camisa" type="text"/></span><select class="nivel-select" id="nivel-1" onchange="saveNivel(this)"><option value="">–</option><option value="1">1</option><option value="2">2</option><option value="3">3</option></select></div><div class="student-extra"><label class="extra-field">Nasc.<input class="nasc-input" id="nasc-1" onchange="saveCampo(this)" type="date" value="2014-08-18"/></label><label class="extra-field liga-field"><input class="liga-check" id="liga-1" onchange="saveCampo(this)" type="checkbox"/> Liga</label><label class="extra-field eventos-field">Eventos<input class="eventos-input" id="eventos-1" onchange="saveCampo(this)" placeholder="ex: Copa SP, Aberto RJ..." type="text"/></label></div></li>
+<li class="student-row"><div class="student-main"><span class="student-name-wrap"><span class="student-name">Alice Romeiro Shirozaki</span><input class="camisa-input" id="camisa-2" onchange="saveCampo(this)" placeholder="Nº" title="Número da camisa" type="text"/></span><select class="nivel-select" id="nivel-2" onchange="saveNivel(this)"><option value="">–</option><option value="1">1</option><option value="2">2</option><option value="3">3</option></select></div><div class="student-extra"><label class="extra-field">Nasc.<input class="nasc-input" id="nasc-2" onchange="saveCampo(this)" type="date" value="2015-05-03"/></label><label class="extra-field liga-field"><input class="liga-check" id="liga-2" onchange="saveCampo(this)" type="checkbox"/> Liga</label><label class="extra-field eventos-field">Eventos<input class="eventos-input" id="eventos-2" onchange="saveCampo(this)" placeholder="ex: Copa SP, Aberto RJ..." type="text"/></label></div></li>
+<li class="student-row"><div class="student-main"><span class="student-name-wrap"><span class="student-name">Antonella Prado Cabrita</span><input class="camisa-input" id="camisa-3" onchange="saveCampo(this)" placeholder="Nº" title="Número da camisa" type="text"/></span><select class="nivel-select" id="nivel-3" onchange="saveNivel(this)"><option value="">–</option><option value="1">1</option><option value="2">2</option><option value="3">3</option></select></div><div class="student-extra"><label class="extra-field">Nasc.<input class="nasc-input" id="nasc-3" onchange="saveCampo(this)" type="date" value="2015-03-20"/></label><label class="extra-field liga-field"><input class="liga-check" id="liga-3" onchange="saveCampo(this)" type="checkbox"/> Liga</label><label class="extra-field eventos-field">Eventos<input class="eventos-input" id="eventos-3" onchange="saveCampo(this)" placeholder="ex: Copa SP, Aberto RJ..." type="text"/></label></div></li>
+<li class="student-row"><div class="student-main"><span class="student-name-wrap"><span class="student-name">Camila de Albuquerque Carvalho</span><input class="camisa-input" id="camisa-4" onchange="saveCampo(this)" placeholder="Nº" title="Número da camisa" type="text"/></span><select class="nivel-select" id="nivel-4" onchange="saveNivel(this)"><option value="">–</option><option value="1">1</option><option value="2">2</option><option value="3">3</option></select></div><div class="student-extra"><label class="extra-field">Nasc.<input class="nasc-input" id="nasc-4" onchange="saveCampo(this)" type="date" value="2015-02-16"/></label><label class="extra-field liga-field"><input class="liga-check" id="liga-4" onchange="saveCampo(this)" type="checkbox"/> Liga</label><label class="extra-field eventos-field">Eventos<input class="eventos-input" id="eventos-4" onchange="saveCampo(this)" placeholder="ex: Copa SP, Aberto RJ..." type="text"/></label></div></li>
+<li class="student-row"><div class="student-main"><span class="student-name-wrap"><span class="student-name">Estela Moraes Forjaz de Oliveira</span><input class="camisa-input" id="camisa-5" onchange="saveCampo(this)" placeholder="Nº" title="Número da camisa" type="text"/></span><select class="nivel-select" id="nivel-5" onchange="saveNivel(this)"><option value="">–</option><option value="1">1</option><option value="2">2</option><option value="3">3</option></select></div><div class="student-extra"><label class="extra-field">Nasc.<input class="nasc-input" id="nasc-5" onchange="saveCampo(this)" type="date" value="2014-08-06"/></label><label class="extra-field liga-field"><input class="liga-check" id="liga-5" onchange="saveCampo(this)" type="checkbox"/> Liga</label><label class="extra-field eventos-field">Eventos<input class="eventos-input" id="eventos-5" onchange="saveCampo(this)" placeholder="ex: Copa SP, Aberto RJ..." type="text"/></label></div></li>
+<li class="student-row"><div class="student-main"><span class="student-name-wrap"><span class="student-name">Giovanna Guedes Schaeffer</span><input class="camisa-input" id="camisa-6" onchange="saveCampo(this)" placeholder="Nº" title="Número da camisa" type="text"/></span><select class="nivel-select" id="nivel-6" onchange="saveNivel(this)"><option value="">–</option><option value="1">1</option><option value="2">2</option><option value="3">3</option></select></div><div class="student-extra"><label class="extra-field">Nasc.<input class="nasc-input" id="nasc-6" onchange="saveCampo(this)" type="date" value="2015-03-03"/></label><label class="extra-field liga-field"><input class="liga-check" id="liga-6" onchange="saveCampo(this)" type="checkbox"/> Liga</label><label class="extra-field eventos-field">Eventos<input class="eventos-input" id="eventos-6" onchange="saveCampo(this)" placeholder="ex: Copa SP, Aberto RJ..." type="text"/></label></div></li>
+<li class="student-row"><div class="student-main"><span class="student-name-wrap"><span class="student-name">Isabela Correia Simões</span><input class="camisa-input" id="camisa-7" onchange="saveCampo(this)" placeholder="Nº" title="Número da camisa" type="text"/></span><select class="nivel-select" id="nivel-7" onchange="saveNivel(this)"><option value="">–</option><option value="1">1</option><option value="2">2</option><option value="3">3</option></select></div><div class="student-extra"><label class="extra-field">Nasc.<input class="nasc-input" id="nasc-7" onchange="saveCampo(this)" type="date" value="2014-05-14"/></label><label class="extra-field liga-field"><input class="liga-check" id="liga-7" onchange="saveCampo(this)" type="checkbox"/> Liga</label><label class="extra-field eventos-field">Eventos<input class="eventos-input" id="eventos-7" onchange="saveCampo(this)" placeholder="ex: Copa SP, Aberto RJ..." type="text"/></label></div></li>
+<li class="student-row"><div class="student-main"><span class="student-name-wrap"><span class="student-name">Julia Acquaviva</span><input class="camisa-input" id="camisa-8" onchange="saveCampo(this)" placeholder="Nº" title="Número da camisa" type="text"/></span><select class="nivel-select" id="nivel-8" onchange="saveNivel(this)"><option value="">–</option><option value="1">1</option><option value="2">2</option><option value="3">3</option></select></div><div class="student-extra"><label class="extra-field">Nasc.<input class="nasc-input" id="nasc-8" onchange="saveCampo(this)" type="date" value="2015-04-02"/></label><label class="extra-field liga-field"><input class="liga-check" id="liga-8" onchange="saveCampo(this)" type="checkbox"/> Liga</label><label class="extra-field eventos-field">Eventos<input class="eventos-input" id="eventos-8" onchange="saveCampo(this)" placeholder="ex: Copa SP, Aberto RJ..." type="text"/></label></div></li>
+<li class="student-row"><div class="student-main"><span class="student-name-wrap"><span class="student-name">Julia Aidar Garcia Braga Netto</span><input class="camisa-input" id="camisa-9" onchange="saveCampo(this)" placeholder="Nº" title="Número da camisa" type="text"/></span><select class="nivel-select" id="nivel-9" onchange="saveNivel(this)"><option value="">–</option><option value="1">1</option><option value="2">2</option><option value="3">3</option></select></div><div class="student-extra"><label class="extra-field">Nasc.<input class="nasc-input" id="nasc-9" onchange="saveCampo(this)" type="date" value="2014-12-24"/></label><label class="extra-field liga-field"><input class="liga-check" id="liga-9" onchange="saveCampo(this)" type="checkbox"/> Liga</label><label class="extra-field eventos-field">Eventos<input class="eventos-input" id="eventos-9" onchange="saveCampo(this)" placeholder="ex: Copa SP, Aberto RJ..." type="text"/></label></div></li>
+<li class="student-row"><div class="student-main"><span class="student-name-wrap"><span class="student-name">Letícia Sanches Bracco</span><input class="camisa-input" id="camisa-10" onchange="saveCampo(this)" placeholder="Nº" title="Número da camisa" type="text"/></span><select class="nivel-select" id="nivel-10" onchange="saveNivel(this)"><option value="">–</option><option value="1">1</option><option value="2">2</option><option value="3">3</option></select></div><div class="student-extra"><label class="extra-field">Nasc.<input class="nasc-input" id="nasc-10" onchange="saveCampo(this)" type="date" value="2015-01-14"/></label><label class="extra-field liga-field"><input class="liga-check" id="liga-10" onchange="saveCampo(this)" type="checkbox"/> Liga</label><label class="extra-field eventos-field">Eventos<input class="eventos-input" id="eventos-10" onchange="saveCampo(this)" placeholder="ex: Copa SP, Aberto RJ..." type="text"/></label></div></li>
+<li class="student-row"><div class="student-main"><span class="student-name-wrap"><span class="student-name">Maria Clara Garcia Neves Barbosa</span><input class="camisa-input" id="camisa-11" onchange="saveCampo(this)" placeholder="Nº" title="Número da camisa" type="text"/></span><select class="nivel-select" id="nivel-11" onchange="saveNivel(this)"><option value="">–</option><option value="1">1</option><option value="2">2</option><option value="3">3</option></select></div><div class="student-extra"><label class="extra-field">Nasc.<input class="nasc-input" id="nasc-11" onchange="saveCampo(this)" type="date" value="2014-10-13"/></label><label class="extra-field liga-field"><input class="liga-check" id="liga-11" onchange="saveCampo(this)" type="checkbox"/> Liga</label><label class="extra-field eventos-field">Eventos<input class="eventos-input" id="eventos-11" onchange="saveCampo(this)" placeholder="ex: Copa SP, Aberto RJ..." type="text"/></label></div></li>
+<li class="student-row"><div class="student-main"><span class="student-name-wrap"><span class="student-name">Mariana Cano Kappaz</span><input class="camisa-input" id="camisa-12" onchange="saveCampo(this)" placeholder="Nº" title="Número da camisa" type="text"/></span><select class="nivel-select" id="nivel-12" onchange="saveNivel(this)"><option value="">–</option><option value="1">1</option><option value="2">2</option><option value="3">3</option></select></div><div class="student-extra"><label class="extra-field">Nasc.<input class="nasc-input" id="nasc-12" onchange="saveCampo(this)" type="date" value="2014-07-18"/></label><label class="extra-field liga-field"><input class="liga-check" id="liga-12" onchange="saveCampo(this)" type="checkbox"/> Liga</label><label class="extra-field eventos-field">Eventos<input class="eventos-input" id="eventos-12" onchange="saveCampo(this)" placeholder="ex: Copa SP, Aberto RJ..." type="text"/></label></div></li>
+<li class="student-row"><div class="student-main"><span class="student-name-wrap"><span class="student-name">Natalia Richetti de Alencastro Guimarães</span><input class="camisa-input" id="camisa-13" onchange="saveCampo(this)" placeholder="Nº" title="Número da camisa" type="text"/></span><select class="nivel-select" id="nivel-13" onchange="saveNivel(this)"><option value="">–</option><option value="1">1</option><option value="2">2</option><option value="3">3</option></select></div><div class="student-extra"><label class="extra-field">Nasc.<input class="nasc-input" id="nasc-13" onchange="saveCampo(this)" type="date" value="2014-08-08"/></label><label class="extra-field liga-field"><input class="liga-check" id="liga-13" onchange="saveCampo(this)" type="checkbox"/> Liga</label><label class="extra-field eventos-field">Eventos<input class="eventos-input" id="eventos-13" onchange="saveCampo(this)" placeholder="ex: Copa SP, Aberto RJ..." type="text"/></label></div></li>
+<li class="student-row"><div class="student-main"><span class="student-name-wrap"><span class="student-name">Olivia Simão Nogueira</span><input class="camisa-input" id="camisa-14" onchange="saveCampo(this)" placeholder="Nº" title="Número da camisa" type="text"/></span><select class="nivel-select" id="nivel-14" onchange="saveNivel(this)"><option value="">–</option><option value="1">1</option><option value="2">2</option><option value="3">3</option></select></div><div class="student-extra"><label class="extra-field">Nasc.<input class="nasc-input" id="nasc-14" onchange="saveCampo(this)" type="date" value="2014-10-21"/></label><label class="extra-field liga-field"><input class="liga-check" id="liga-14" onchange="saveCampo(this)" type="checkbox"/> Liga</label><label class="extra-field eventos-field">Eventos<input class="eventos-input" id="eventos-14" onchange="saveCampo(this)" placeholder="ex: Copa SP, Aberto RJ..." type="text"/></label></div></li>
+<li class="student-row"><div class="student-main"><span class="student-name-wrap"><span class="student-name">Rafaela Barion Lupianhes</span><input class="camisa-input" id="camisa-15" onchange="saveCampo(this)" placeholder="Nº" title="Número da camisa" type="text"/></span><select class="nivel-select" id="nivel-15" onchange="saveNivel(this)"><option value="">–</option><option value="1">1</option><option value="2">2</option><option value="3">3</option></select></div><div class="student-extra"><label class="extra-field">Nasc.<input class="nasc-input" id="nasc-15" onchange="saveCampo(this)" type="date" value="2014-12-03"/></label><label class="extra-field liga-field"><input class="liga-check" id="liga-15" onchange="saveCampo(this)" type="checkbox"/> Liga</label><label class="extra-field eventos-field">Eventos<input class="eventos-input" id="eventos-15" onchange="saveCampo(this)" placeholder="ex: Copa SP, Aberto RJ..." type="text"/></label></div></li>
+<li class="student-row"><div class="student-main"><span class="student-name-wrap"><span class="student-name">Valentina Castro Brilhante de Albuquerque</span><input class="camisa-input" id="camisa-16" onchange="saveCampo(this)" placeholder="Nº" title="Número da camisa" type="text"/></span><select class="nivel-select" id="nivel-16" onchange="saveNivel(this)"><option value="">–</option><option value="1">1</option><option value="2">2</option><option value="3">3</option></select></div><div class="student-extra"><label class="extra-field">Nasc.<input class="nasc-input" id="nasc-16" onchange="saveCampo(this)" type="date" value="2015-05-11"/></label><label class="extra-field liga-field"><input class="liga-check" id="liga-16" onchange="saveCampo(this)" type="checkbox"/> Liga</label><label class="extra-field eventos-field">Eventos<input class="eventos-input" id="eventos-16" onchange="saveCampo(this)" placeholder="ex: Copa SP, Aberto RJ..." type="text"/></label></div></li>
+<li class="student-row"><div class="student-main"><span class="student-name-wrap"><span class="student-name">Maria Fernanda Machado Roque</span><input class="camisa-input" id="camisa-17" onchange="saveCampo(this)" placeholder="Nº" title="Número da camisa" type="text"/></span><select class="nivel-select" id="nivel-17" onchange="saveNivel(this)"><option value="">–</option><option value="1">1</option><option value="2">2</option><option value="3">3</option></select></div><div class="student-extra"><label class="extra-field">Nasc.<input class="nasc-input" id="nasc-17" onchange="saveCampo(this)" type="date" value="2014-08-28"/></label><label class="extra-field liga-field"><input class="liga-check" id="liga-17" onchange="saveCampo(this)" type="checkbox"/> Liga</label><label class="extra-field eventos-field">Eventos<input class="eventos-input" id="eventos-17" onchange="saveCampo(this)" placeholder="ex: Copa SP, Aberto RJ..." type="text"/></label></div></li>
+<li class="student-row"><div class="student-main"><span class="student-name-wrap"><span class="student-name">Helena Moreira Montemor</span><input class="camisa-input" id="camisa-18" onchange="saveCampo(this)" placeholder="Nº" title="Número da camisa" type="text"/></span><select class="nivel-select" id="nivel-18" onchange="saveNivel(this)"><option value="">–</option><option value="1">1</option><option value="2">2</option><option value="3">3</option></select></div><div class="student-extra"><label class="extra-field">Nasc.<input class="nasc-input" id="nasc-18" onchange="saveCampo(this)" type="date" value="2014-11-01"/></label><label class="extra-field liga-field"><input class="liga-check" id="liga-18" onchange="saveCampo(this)" type="checkbox"/> Liga</label><label class="extra-field eventos-field">Eventos<input class="eventos-input" id="eventos-18" onchange="saveCampo(this)" placeholder="ex: Copa SP, Aberto RJ..." type="text"/></label></div></li>
+<li class="student-row"><div class="student-main"><span class="student-name-wrap"><span class="student-name">Valentina Hecksher Machado Parasmo</span><input class="camisa-input" id="camisa-19" onchange="saveCampo(this)" placeholder="Nº" title="Número da camisa" type="text"/></span><select class="nivel-select" id="nivel-19" onchange="saveNivel(this)"><option value="">–</option><option value="1">1</option><option value="2">2</option><option value="3">3</option></select></div><div class="student-extra"><label class="extra-field">Nasc.<input class="nasc-input" id="nasc-19" onchange="saveCampo(this)" type="date" value="2014-10-20"/></label><label class="extra-field liga-field"><input class="liga-check" id="liga-19" onchange="saveCampo(this)" type="checkbox"/> Liga</label><label class="extra-field eventos-field">Eventos<input class="eventos-input" id="eventos-19" onchange="saveCampo(this)" placeholder="ex: Copa SP, Aberto RJ..." type="text"/></label></div></li>
+</ul>
+</div>
+</div>
+</section>
+<!-- 7A -->
+<section class="category-section" id="mini">
+<div class="cat-title cat-mini"><span>7º ano A</span></div>
+<div class="teacher-filter" data-section="mini">
+<button class="filter-btn active" data-filter="rafa" onclick="filtrarProfessor('mini','rafa',this)">Rafa</button>
+</div>
+<div class="teacher-grid">
+<div class="teacher-card rafa">
+<div class="teacher-header">
+<h3>Rafa</h3>
+<span class="badge">14 alunos</span>
+</div>
+<ul class="student-list">
+<li class="student-row"><div class="student-main"><span class="student-name-wrap"><span class="student-name">Alice Madeira de Faria</span><input class="camisa-input" id="camisa-20" onchange="saveCampo(this)" placeholder="Nº" title="Número da camisa" type="text"/></span><select class="nivel-select" id="nivel-20" onchange="saveNivel(this)"><option value="">–</option><option value="1">1</option><option value="2">2</option><option value="3">3</option></select></div><div class="student-extra"><label class="extra-field">Nasc.<input class="nasc-input" id="nasc-20" onchange="saveCampo(this)" type="date" value="2014-01-27"/></label><label class="extra-field liga-field"><input class="liga-check" id="liga-20" onchange="saveCampo(this)" type="checkbox"/> Liga</label><label class="extra-field eventos-field">Eventos<input class="eventos-input" id="eventos-20" onchange="saveCampo(this)" placeholder="ex: Copa SP, Aberto RJ..." type="text"/></label></div></li>
+<li class="student-row"><div class="student-main"><span class="student-name-wrap"><span class="student-name">Bianca Lopes Merli</span><input class="camisa-input" id="camisa-21" onchange="saveCampo(this)" placeholder="Nº" title="Número da camisa" type="text"/></span><select class="nivel-select" id="nivel-21" onchange="saveNivel(this)"><option value="">–</option><option value="1">1</option><option value="2">2</option><option value="3">3</option></select></div><div class="student-extra"><label class="extra-field">Nasc.<input class="nasc-input" id="nasc-21" onchange="saveCampo(this)" type="date" value="2014-06-16"/></label><label class="extra-field liga-field"><input class="liga-check" id="liga-21" onchange="saveCampo(this)" type="checkbox"/> Liga</label><label class="extra-field eventos-field">Eventos<input class="eventos-input" id="eventos-21" onchange="saveCampo(this)" placeholder="ex: Copa SP, Aberto RJ..." type="text"/></label></div></li>
+<li class="student-row"><div class="student-main"><span class="student-name-wrap"><span class="student-name">Camila Toledo Camargo</span><input class="camisa-input" id="camisa-22" onchange="saveCampo(this)" placeholder="Nº" title="Número da camisa" type="text"/></span><select class="nivel-select" id="nivel-22" onchange="saveNivel(this)"><option value="">–</option><option value="1">1</option><option value="2">2</option><option value="3">3</option></select></div><div class="student-extra"><label class="extra-field">Nasc.<input class="nasc-input" id="nasc-22" onchange="saveCampo(this)" type="date" value="2014-04-30"/></label><label class="extra-field liga-field"><input class="liga-check" id="liga-22" onchange="saveCampo(this)" type="checkbox"/> Liga</label><label class="extra-field eventos-field">Eventos<input class="eventos-input" id="eventos-22" onchange="saveCampo(this)" placeholder="ex: Copa SP, Aberto RJ..." type="text"/></label></div></li>
+<li class="student-row"><div class="student-main"><span class="student-name-wrap"><span class="student-name">Carol Kanter Bueno</span><input class="camisa-input" id="camisa-23" onchange="saveCampo(this)" placeholder="Nº" title="Número da camisa" type="text"/></span><select class="nivel-select" id="nivel-23" onchange="saveNivel(this)"><option value="">–</option><option value="1">1</option><option value="2">2</option><option value="3">3</option></select></div><div class="student-extra"><label class="extra-field">Nasc.<input class="nasc-input" id="nasc-23" onchange="saveCampo(this)" type="date" value="2014-04-17"/></label><label class="extra-field liga-field"><input class="liga-check" id="liga-23" onchange="saveCampo(this)" type="checkbox"/> Liga</label><label class="extra-field eventos-field">Eventos<input class="eventos-input" id="eventos-23" onchange="saveCampo(this)" placeholder="ex: Copa SP, Aberto RJ..." type="text"/></label></div></li>
+<li class="student-row"><div class="student-main"><span class="student-name-wrap"><span class="student-name">Carolina Kawagoe Yamamoto</span><input class="camisa-input" id="camisa-24" onchange="saveCampo(this)" placeholder="Nº" title="Número da camisa" type="text"/></span><select class="nivel-select" id="nivel-24" onchange="saveNivel(this)"><option value="">–</option><option value="1">1</option><option value="2">2</option><option value="3">3</option></select></div><div class="student-extra"><label class="extra-field">Nasc.<input class="nasc-input" id="nasc-24" onchange="saveCampo(this)" type="date" value="2013-11-20"/></label><label class="extra-field liga-field"><input class="liga-check" id="liga-24" onchange="saveCampo(this)" type="checkbox"/> Liga</label><label class="extra-field eventos-field">Eventos<input class="eventos-input" id="eventos-24" onchange="saveCampo(this)" placeholder="ex: Copa SP, Aberto RJ..." type="text"/></label></div></li>
+<li class="student-row"><div class="student-main"><span class="student-name-wrap"><span class="student-name">Catarina Arantes Scaramuzza</span><input class="camisa-input" id="camisa-25" onchange="saveCampo(this)" placeholder="Nº" title="Número da camisa" type="text"/></span><select class="nivel-select" id="nivel-25" onchange="saveNivel(this)"><option value="">–</option><option value="1">1</option><option value="2">2</option><option value="3">3</option></select></div><div class="student-extra"><label class="extra-field">Nasc.<input class="nasc-input" id="nasc-25" onchange="saveCampo(this)" type="date" value="2013-12-26"/></label><label class="extra-field liga-field"><input class="liga-check" id="liga-25" onchange="saveCampo(this)" type="checkbox"/> Liga</label><label class="extra-field eventos-field">Eventos<input class="eventos-input" id="eventos-25" onchange="saveCampo(this)" placeholder="ex: Copa SP, Aberto RJ..." type="text"/></label></div></li>
+<li class="student-row"><div class="student-main"><span class="student-name-wrap"><span class="student-name">Gabriela L. L. Monteiro da Silva</span><input class="camisa-input" id="camisa-26" onchange="saveCampo(this)" placeholder="Nº" title="Número da camisa" type="text"/></span><select class="nivel-select" id="nivel-26" onchange="saveNivel(this)"><option value="">–</option><option value="1">1</option><option value="2">2</option><option value="3">3</option></select></div><div class="student-extra"><label class="extra-field">Nasc.<input class="nasc-input" id="nasc-26" onchange="saveCampo(this)" type="date" value="2014-06-19"/></label><label class="extra-field liga-field"><input class="liga-check" id="liga-26" onchange="saveCampo(this)" type="checkbox"/> Liga</label><label class="extra-field eventos-field">Eventos<input class="eventos-input" id="eventos-26" onchange="saveCampo(this)" placeholder="ex: Copa SP, Aberto RJ..." type="text"/></label></div></li>
+<li class="student-row"><div class="student-main"><span class="student-name-wrap"><span class="student-name">Gabriela Lutfi Rebechi</span><input class="camisa-input" id="camisa-27" onchange="saveCampo(this)" placeholder="Nº" title="Número da camisa" type="text"/></span><select class="nivel-select" id="nivel-27" onchange="saveNivel(this)"><option value="">–</option><option value="1">1</option><option value="2">2</option><option value="3">3</option></select></div><div class="student-extra"><label class="extra-field">Nasc.<input class="nasc-input" id="nasc-27" onchange="saveCampo(this)" type="date" value="2014-04-11"/></label><label class="extra-field liga-field"><input class="liga-check" id="liga-27" onchange="saveCampo(this)" type="checkbox"/> Liga</label><label class="extra-field eventos-field">Eventos<input class="eventos-input" id="eventos-27" onchange="saveCampo(this)" placeholder="ex: Copa SP, Aberto RJ..." type="text"/></label></div></li>
+<li class="student-row"><div class="student-main"><span class="student-name-wrap"><span class="student-name">Giovana Pisciotanno Paro</span><input class="camisa-input" id="camisa-28" onchange="saveCampo(this)" placeholder="Nº" title="Número da camisa" type="text"/></span><select class="nivel-select" id="nivel-28" onchange="saveNivel(this)"><option value="">–</option><option value="1">1</option><option value="2">2</option><option value="3">3</option></select></div><div class="student-extra"><label class="extra-field">Nasc.<input class="nasc-input" id="nasc-28" onchange="saveCampo(this)" type="date" value="2013-11-18"/></label><label class="extra-field liga-field"><input class="liga-check" id="liga-28" onchange="saveCampo(this)" type="checkbox"/> Liga</label><label class="extra-field eventos-field">Eventos<input class="eventos-input" id="eventos-28" onchange="saveCampo(this)" placeholder="ex: Copa SP, Aberto RJ..." type="text"/></label></div></li>
+<li class="student-row"><div class="student-main"><span class="student-name-wrap"><span class="student-name">Helena Arantes Scaramuzza</span><input class="camisa-input" id="camisa-29" onchange="saveCampo(this)" placeholder="Nº" title="Número da camisa" type="text"/></span><select class="nivel-select" id="nivel-29" onchange="saveNivel(this)"><option value="">–</option><option value="1">1</option><option value="2">2</option><option value="3">3</option></select></div><div class="student-extra"><label class="extra-field">Nasc.<input class="nasc-input" id="nasc-29" onchange="saveCampo(this)" type="date" value="2013-12-26"/></label><label class="extra-field liga-field"><input class="liga-check" id="liga-29" onchange="saveCampo(this)" type="checkbox"/> Liga</label><label class="extra-field eventos-field">Eventos<input class="eventos-input" id="eventos-29" onchange="saveCampo(this)" placeholder="ex: Copa SP, Aberto RJ..." type="text"/></label></div></li>
+<li class="student-row"><div class="student-main"><span class="student-name-wrap"><span class="student-name">Julia Santos Roslindo Nunes</span><input class="camisa-input" id="camisa-30" onchange="saveCampo(this)" placeholder="Nº" title="Número da camisa" type="text"/></span><select class="nivel-select" id="nivel-30" onchange="saveNivel(this)"><option value="">–</option><option value="1">1</option><option value="2">2</option><option value="3">3</option></select></div><div class="student-extra"><label class="extra-field">Nasc.<input class="nasc-input" id="nasc-30" onchange="saveCampo(this)" type="date" value="2013-10-04"/></label><label class="extra-field liga-field"><input class="liga-check" id="liga-30" onchange="saveCampo(this)" type="checkbox"/> Liga</label><label class="extra-field eventos-field">Eventos<input class="eventos-input" id="eventos-30" onchange="saveCampo(this)" placeholder="ex: Copa SP, Aberto RJ..." type="text"/></label></div></li>
+<li class="student-row"><div class="student-main"><span class="student-name-wrap"><span class="student-name">Lara Cunha Alvarenga</span><input class="camisa-input" id="camisa-31" onchange="saveCampo(this)" placeholder="Nº" title="Número da camisa" type="text"/></span><select class="nivel-select" id="nivel-31" onchange="saveNivel(this)"><option value="">–</option><option value="1">1</option><option value="2">2</option><option value="3">3</option></select></div><div class="student-extra"><label class="extra-field">Nasc.<input class="nasc-input" id="nasc-31" onchange="saveCampo(this)" type="date" value="2014-04-02"/></label><label class="extra-field liga-field"><input class="liga-check" id="liga-31" onchange="saveCampo(this)" type="checkbox"/> Liga</label><label class="extra-field eventos-field">Eventos<input class="eventos-input" id="eventos-31" onchange="saveCampo(this)" placeholder="ex: Copa SP, Aberto RJ..." type="text"/></label></div></li>
+<li class="student-row"><div class="student-main"><span class="student-name-wrap"><span class="student-name">Livia Sousa de Espíndola</span><input class="camisa-input" id="camisa-32" onchange="saveCampo(this)" placeholder="Nº" title="Número da camisa" type="text"/></span><select class="nivel-select" id="nivel-32" onchange="saveNivel(this)"><option value="">–</option><option value="1">1</option><option value="2">2</option><option value="3">3</option></select></div><div class="student-extra"><label class="extra-field">Nasc.<input class="nasc-input" id="nasc-32" onchange="saveCampo(this)" type="date" value="2013-06-02"/></label><label class="extra-field liga-field"><input class="liga-check" id="liga-32" onchange="saveCampo(this)" type="checkbox"/> Liga</label><label class="extra-field eventos-field">Eventos<input class="eventos-input" id="eventos-32" onchange="saveCampo(this)" placeholder="ex: Copa SP, Aberto RJ..." type="text"/></label></div></li>
+<li class="student-row"><div class="student-main"><span class="student-name-wrap"><span class="student-name">Luisa Fakri de Assis Ferreira</span><input class="camisa-input" id="camisa-33" onchange="saveCampo(this)" placeholder="Nº" title="Número da camisa" type="text"/></span><select class="nivel-select" id="nivel-33" onchange="saveNivel(this)"><option value="">–</option><option value="1">1</option><option value="2">2</option><option value="3">3</option></select></div><div class="student-extra"><label class="extra-field">Nasc.<input class="nasc-input" id="nasc-33" onchange="saveCampo(this)" type="date" value="2013-10-11"/></label><label class="extra-field liga-field"><input class="liga-check" id="liga-33" onchange="saveCampo(this)" type="checkbox"/> Liga</label><label class="extra-field eventos-field">Eventos<input class="eventos-input" id="eventos-33" onchange="saveCampo(this)" placeholder="ex: Copa SP, Aberto RJ..." type="text"/></label></div></li>
+</ul>
+</div>
+</div>
+</section>
+<!-- 7B -->
+<section class="category-section" id="sub13">
+<div class="cat-title cat-sub13"><span>7º ano B</span></div>
+<div class="teacher-filter" data-section="sub13">
+<button class="filter-btn active" data-filter="rafa" onclick="filtrarProfessor('sub13','rafa',this)">Rafa</button>
+</div>
+<div class="teacher-grid">
+<div class="teacher-card rafa">
+<div class="teacher-header">
+<h3>Rafa</h3>
+<span class="badge">14 alunos</span>
+</div>
+<ul class="student-list">
+<li class="student-row"><div class="student-main"><span class="student-name-wrap"><span class="student-name">Marcela Camhaji Bianco</span><input class="camisa-input" id="camisa-34" onchange="saveCampo(this)" placeholder="Nº" title="Número da camisa" type="text"/></span><select class="nivel-select" id="nivel-34" onchange="saveNivel(this)"><option value="">–</option><option value="1">1</option><option value="2">2</option><option value="3">3</option></select></div><div class="student-extra"><label class="extra-field">Nasc.<input class="nasc-input" id="nasc-34" onchange="saveCampo(this)" type="date" value="2014-06-21"/></label><label class="extra-field liga-field"><input class="liga-check" id="liga-34" onchange="saveCampo(this)" type="checkbox"/> Liga</label><label class="extra-field eventos-field">Eventos<input class="eventos-input" id="eventos-34" onchange="saveCampo(this)" placeholder="ex: Copa SP, Aberto RJ..." type="text"/></label></div></li>
+<li class="student-row"><div class="student-main"><span class="student-name-wrap"><span class="student-name">Maria Clara Fakri Guimarães</span><input class="camisa-input" id="camisa-35" onchange="saveCampo(this)" placeholder="Nº" title="Número da camisa" type="text"/></span><select class="nivel-select" id="nivel-35" onchange="saveNivel(this)"><option value="">–</option><option value="1">1</option><option value="2">2</option><option value="3">3</option></select></div><div class="student-extra"><label class="extra-field">Nasc.<input class="nasc-input" id="nasc-35" onchange="saveCampo(this)" type="date" value="2014-02-26"/></label><label class="extra-field liga-field"><input class="liga-check" id="liga-35" onchange="saveCampo(this)" type="checkbox"/> Liga</label><label class="extra-field eventos-field">Eventos<input class="eventos-input" id="eventos-35" onchange="saveCampo(this)" placeholder="ex: Copa SP, Aberto RJ..." type="text"/></label></div></li>
+<li class="student-row"><div class="student-main"><span class="student-name-wrap"><span class="student-name">Maria Clara Fonseca Cossi</span><input class="camisa-input" id="camisa-36" onchange="saveCampo(this)" placeholder="Nº" title="Número da camisa" type="text"/></span><select class="nivel-select" id="nivel-36" onchange="saveNivel(this)"><option value="">–</option><option value="1">1</option><option value="2">2</option><option value="3">3</option></select></div><div class="student-extra"><label class="extra-field">Nasc.<input class="nasc-input" id="nasc-36" onchange="saveCampo(this)" type="date" value="2014-04-24"/></label><label class="extra-field liga-field"><input class="liga-check" id="liga-36" onchange="saveCampo(this)" type="checkbox"/> Liga</label><label class="extra-field eventos-field">Eventos<input class="eventos-input" id="eventos-36" onchange="saveCampo(this)" placeholder="ex: Copa SP, Aberto RJ..." type="text"/></label></div></li>
+<li class="student-row"><div class="student-main"><span class="student-name-wrap"><span class="student-name">Melissa Becker Moreno</span><input class="camisa-input" id="camisa-37" onchange="saveCampo(this)" placeholder="Nº" title="Número da camisa" type="text"/></span><select class="nivel-select" id="nivel-37" onchange="saveNivel(this)"><option value="">–</option><option value="1">1</option><option value="2">2</option><option value="3">3</option></select></div><div class="student-extra"><label class="extra-field">Nasc.<input class="nasc-input" id="nasc-37" onchange="saveCampo(this)" type="date" value="2014-01-15"/></label><label class="extra-field liga-field"><input class="liga-check" id="liga-37" onchange="saveCampo(this)" type="checkbox"/> Liga</label><label class="extra-field eventos-field">Eventos<input class="eventos-input" id="eventos-37" onchange="saveCampo(this)" placeholder="ex: Copa SP, Aberto RJ..." type="text"/></label></div></li>
+<li class="student-row"><div class="student-main"><span class="student-name-wrap"><span class="student-name">Rafaela Faria Alcubierre</span><input class="camisa-input" id="camisa-38" onchange="saveCampo(this)" placeholder="Nº" title="Número da camisa" type="text"/></span><select class="nivel-select" id="nivel-38" onchange="saveNivel(this)"><option value="">–</option><option value="1">1</option><option value="2">2</option><option value="3">3</option></select></div><div class="student-extra"><label class="extra-field">Nasc.<input class="nasc-input" id="nasc-38" onchange="saveCampo(this)" type="date" value="2014-05-23"/></label><label class="extra-field liga-field"><input class="liga-check" id="liga-38" onchange="saveCampo(this)" type="checkbox"/> Liga</label><label class="extra-field eventos-field">Eventos<input class="eventos-input" id="eventos-38" onchange="saveCampo(this)" placeholder="ex: Copa SP, Aberto RJ..." type="text"/></label></div></li>
+<li class="student-row"><div class="student-main"><span class="student-name-wrap"><span class="student-name">Roberta Basile Cavallari Coelho</span><input class="camisa-input" id="camisa-39" onchange="saveCampo(this)" placeholder="Nº" title="Número da camisa" type="text"/></span><select class="nivel-select" id="nivel-39" onchange="saveNivel(this)"><option value="">–</option><option value="1">1</option><option value="2">2</option><option value="3">3</option></select></div><div class="student-extra"><label class="extra-field">Nasc.<input class="nasc-input" id="nasc-39" onchange="saveCampo(this)" type="date" value="2013-12-11"/></label><label class="extra-field liga-field"><input class="liga-check" id="liga-39" onchange="saveCampo(this)" type="checkbox"/> Liga</label><label class="extra-field eventos-field">Eventos<input class="eventos-input" id="eventos-39" onchange="saveCampo(this)" placeholder="ex: Copa SP, Aberto RJ..." type="text"/></label></div></li>
+<li class="student-row"><div class="student-main"><span class="student-name-wrap"><span class="student-name">Sofia Barreto Siqueira de Carvalho</span><input class="camisa-input" id="camisa-40" onchange="saveCampo(this)" placeholder="Nº" title="Número da camisa" type="text"/></span><select class="nivel-select" id="nivel-40" onchange="saveNivel(this)"><option value="">–</option><option value="1">1</option><option value="2">2</option><option value="3">3</option></select></div><div class="student-extra"><label class="extra-field">Nasc.<input class="nasc-input" id="nasc-40" onchange="saveCampo(this)" type="date" value="2013-10-03"/></label><label class="extra-field liga-field"><input class="liga-check" id="liga-40" onchange="saveCampo(this)" type="checkbox"/> Liga</label><label class="extra-field eventos-field">Eventos<input class="eventos-input" id="eventos-40" onchange="saveCampo(this)" placeholder="ex: Copa SP, Aberto RJ..." type="text"/></label></div></li>
+<li class="student-row"><div class="student-main"><span class="student-name-wrap"><span class="student-name">Sofia Pires da Fonseca</span><input class="camisa-input" id="camisa-41" onchange="saveCampo(this)" placeholder="Nº" title="Número da camisa" type="text"/></span><select class="nivel-select" id="nivel-41" onchange="saveNivel(this)"><option value="">–</option><option value="1">1</option><option value="2">2</option><option value="3">3</option></select></div><div class="student-extra"><label class="extra-field">Nasc.<input class="nasc-input" id="nasc-41" onchange="saveCampo(this)" type="date" value="2014-02-09"/></label><label class="extra-field liga-field"><input class="liga-check" id="liga-41" onchange="saveCampo(this)" type="checkbox"/> Liga</label><label class="extra-field eventos-field">Eventos<input class="eventos-input" id="eventos-41" onchange="saveCampo(this)" placeholder="ex: Copa SP, Aberto RJ..." type="text"/></label></div></li>
+<li class="student-row"><div class="student-main"><span class="student-name-wrap"><span class="student-name">Sofia Schechner</span><input class="camisa-input" id="camisa-42" onchange="saveCampo(this)" placeholder="Nº" title="Número da camisa" type="text"/></span><select class="nivel-select" id="nivel-42" onchange="saveNivel(this)"><option value="">–</option><option value="1">1</option><option value="2">2</option><option value="3">3</option></select></div><div class="student-extra"><label class="extra-field">Nasc.<input class="nasc-input" id="nasc-42" onchange="saveCampo(this)" type="date" value="2014-04-16"/></label><label class="extra-field liga-field"><input class="liga-check" id="liga-42" onchange="saveCampo(this)" type="checkbox"/> Liga</label><label class="extra-field eventos-field">Eventos<input class="eventos-input" id="eventos-42" onchange="saveCampo(this)" placeholder="ex: Copa SP, Aberto RJ..." type="text"/></label></div></li>
+<li class="student-row"><div class="student-main"><span class="student-name-wrap"><span class="student-name">Valentina Tassinari Magaldi</span><input class="camisa-input" id="camisa-43" onchange="saveCampo(this)" placeholder="Nº" title="Número da camisa" type="text"/></span><select class="nivel-select" id="nivel-43" onchange="saveNivel(this)"><option value="">–</option><option value="1">1</option><option value="2">2</option><option value="3">3</option></select></div><div class="student-extra"><label class="extra-field">Nasc.<input class="nasc-input" id="nasc-43" onchange="saveCampo(this)" type="date" value="2013-07-09"/></label><label class="extra-field liga-field"><input class="liga-check" id="liga-43" onchange="saveCampo(this)" type="checkbox"/> Liga</label><label class="extra-field eventos-field">Eventos<input class="eventos-input" id="eventos-43" onchange="saveCampo(this)" placeholder="ex: Copa SP, Aberto RJ..." type="text"/></label></div></li>
+<li class="student-row"><div class="student-main"><span class="student-name-wrap"><span class="student-name">Valentina Salles Afonso Demirsky</span><input class="camisa-input" id="camisa-44" onchange="saveCampo(this)" placeholder="Nº" title="Número da camisa" type="text"/></span><select class="nivel-select" id="nivel-44" onchange="saveNivel(this)"><option value="">–</option><option value="1">1</option><option value="2">2</option><option value="3">3</option></select></div><div class="student-extra"><label class="extra-field">Nasc.<input class="nasc-input" id="nasc-44" onchange="saveCampo(this)" type="date" value="2013-08-15"/></label><label class="extra-field liga-field"><input class="liga-check" id="liga-44" onchange="saveCampo(this)" type="checkbox"/> Liga</label><label class="extra-field eventos-field">Eventos<input class="eventos-input" id="eventos-44" onchange="saveCampo(this)" placeholder="ex: Copa SP, Aberto RJ..." type="text"/></label></div></li>
+<li class="student-row"><div class="student-main"><span class="student-name-wrap"><span class="student-name">Victoria Yamaniski</span><input class="camisa-input" id="camisa-45" onchange="saveCampo(this)" placeholder="Nº" title="Número da camisa" type="text"/></span><select class="nivel-select" id="nivel-45" onchange="saveNivel(this)"><option value="">–</option><option value="1">1</option><option value="2">2</option><option value="3">3</option></select></div><div class="student-extra"><label class="extra-field">Nasc.<input class="nasc-input" id="nasc-45" onchange="saveCampo(this)" type="date" value="2014-04-16"/></label><label class="extra-field liga-field"><input class="liga-check" id="liga-45" onchange="saveCampo(this)" type="checkbox"/> Liga</label><label class="extra-field eventos-field">Eventos<input class="eventos-input" id="eventos-45" onchange="saveCampo(this)" placeholder="ex: Copa SP, Aberto RJ..." type="text"/></label></div></li>
+<li class="student-row"><div class="student-main"><span class="student-name-wrap"><span class="student-name">Rafaela Pimenta</span><input class="camisa-input" id="camisa-46" onchange="saveCampo(this)" placeholder="Nº" title="Número da camisa" type="text"/></span><select class="nivel-select" id="nivel-46" onchange="saveNivel(this)"><option value="">–</option><option value="1">1</option><option value="2">2</option><option value="3">3</option></select></div><div class="student-extra"><label class="extra-field">Nasc.<input class="nasc-input" id="nasc-46" onchange="saveCampo(this)" type="date"/></label><label class="extra-field liga-field"><input class="liga-check" id="liga-46" onchange="saveCampo(this)" type="checkbox"/> Liga</label><label class="extra-field eventos-field">Eventos<input class="eventos-input" id="eventos-46" onchange="saveCampo(this)" placeholder="ex: Copa SP, Aberto RJ..." type="text"/></label></div></li>
+<li class="student-row"><div class="student-main"><span class="student-name-wrap"><span class="student-name">Maria Eduarda Scudiere</span><input class="camisa-input" id="camisa-47" onchange="saveCampo(this)" placeholder="Nº" title="Número da camisa" type="text"/></span><select class="nivel-select" id="nivel-47" onchange="saveNivel(this)"><option value="">–</option><option value="1">1</option><option value="2">2</option><option value="3">3</option></select></div><div class="student-extra"><label class="extra-field">Nasc.<input class="nasc-input" id="nasc-47" onchange="saveCampo(this)" type="date"/></label><label class="extra-field liga-field"><input class="liga-check" id="liga-47" onchange="saveCampo(this)" type="checkbox"/> Liga</label><label class="extra-field eventos-field">Eventos<input class="eventos-input" id="eventos-47" onchange="saveCampo(this)" placeholder="ex: Copa SP, Aberto RJ..." type="text"/></label></div></li>
+</ul>
+</div>
+</div>
+</section>
+<!-- 8ANO -->
+<section class="category-section" id="sub15">
+<div class="cat-title cat-sub15"><span>8º ano</span></div>
+<div class="teacher-filter" data-section="sub15">
+<button class="filter-btn active" data-filter="rafa" onclick="filtrarProfessor('sub15','rafa',this)">Rafa</button>
+</div>
+<div class="teacher-grid">
+<div class="teacher-card rafa">
+<div class="teacher-header">
+<h3>Rafa</h3>
+<span class="badge">11 alunos</span>
+</div>
+<ul class="student-list">
+<li class="student-row"><div class="student-main"><span class="student-name-wrap"><span class="student-name">Catarina Leitão Guerra Araujo</span><input class="camisa-input" id="camisa-48" onchange="saveCampo(this)" placeholder="Nº" title="Número da camisa" type="text"/></span><select class="nivel-select" id="nivel-48" onchange="saveNivel(this)"><option value="">–</option><option value="1">1</option><option value="2">2</option><option value="3">3</option></select></div><div class="student-extra"><label class="extra-field">Nasc.<input class="nasc-input" id="nasc-48" onchange="saveCampo(this)" type="date" value="2012-06-13"/></label><label class="extra-field liga-field"><input class="liga-check" id="liga-48" onchange="saveCampo(this)" type="checkbox"/> Liga</label><label class="extra-field eventos-field">Eventos<input class="eventos-input" id="eventos-48" onchange="saveCampo(this)" placeholder="ex: Copa SP, Aberto RJ..." type="text"/></label></div></li>
+<li class="student-row"><div class="student-main"><span class="student-name-wrap"><span class="student-name">Giovana Azevedo Favale</span><input class="camisa-input" id="camisa-49" onchange="saveCampo(this)" placeholder="Nº" title="Número da camisa" type="text"/></span><select class="nivel-select" id="nivel-49" onchange="saveNivel(this)"><option value="">–</option><option value="1">1</option><option value="2">2</option><option value="3">3</option></select></div><div class="student-extra"><label class="extra-field">Nasc.<input class="nasc-input" id="nasc-49" onchange="saveCampo(this)" type="date" value="2013-06-10"/></label><label class="extra-field liga-field"><input class="liga-check" id="liga-49" onchange="saveCampo(this)" type="checkbox"/> Liga</label><label class="extra-field eventos-field">Eventos<input class="eventos-input" id="eventos-49" onchange="saveCampo(this)" placeholder="ex: Copa SP, Aberto RJ..." type="text"/></label></div></li>
+<li class="student-row"><div class="student-main"><span class="student-name-wrap"><span class="student-name">Livia Iglezias Garcez Lopes</span><input class="camisa-input" id="camisa-50" onchange="saveCampo(this)" placeholder="Nº" title="Número da camisa" type="text"/></span><select class="nivel-select" id="nivel-50" onchange="saveNivel(this)"><option value="">–</option><option value="1">1</option><option value="2">2</option><option value="3">3</option></select></div><div class="student-extra"><label class="extra-field">Nasc.<input class="nasc-input" id="nasc-50" onchange="saveCampo(this)" type="date" value="2013-01-11"/></label><label class="extra-field liga-field"><input class="liga-check" id="liga-50" onchange="saveCampo(this)" type="checkbox"/> Liga</label><label class="extra-field eventos-field">Eventos<input class="eventos-input" id="eventos-50" onchange="saveCampo(this)" placeholder="ex: Copa SP, Aberto RJ..." type="text"/></label></div></li>
+<li class="student-row"><div class="student-main"><span class="student-name-wrap"><span class="student-name">Maria Eduarda Neri</span><input class="camisa-input" id="camisa-51" onchange="saveCampo(this)" placeholder="Nº" title="Número da camisa" type="text"/></span><select class="nivel-select" id="nivel-51" onchange="saveNivel(this)"><option value="">–</option><option value="1">1</option><option value="2">2</option><option value="3">3</option></select></div><div class="student-extra"><label class="extra-field">Nasc.<input class="nasc-input" id="nasc-51" onchange="saveCampo(this)" type="date" value="2013-05-03"/></label><label class="extra-field liga-field"><input class="liga-check" id="liga-51" onchange="saveCampo(this)" type="checkbox"/> Liga</label><label class="extra-field eventos-field">Eventos<input class="eventos-input" id="eventos-51" onchange="saveCampo(this)" placeholder="ex: Copa SP, Aberto RJ..." type="text"/></label></div></li>
+<li class="student-row"><div class="student-main"><span class="student-name-wrap"><span class="student-name">Niccole Reis Yamaniski</span><input class="camisa-input" id="camisa-52" onchange="saveCampo(this)" placeholder="Nº" title="Número da camisa" type="text"/></span><select class="nivel-select" id="nivel-52" onchange="saveNivel(this)"><option value="">–</option><option value="1">1</option><option value="2">2</option><option value="3">3</option></select></div><div class="student-extra"><label class="extra-field">Nasc.<input class="nasc-input" id="nasc-52" onchange="saveCampo(this)" type="date" value="2012-07-02"/></label><label class="extra-field liga-field"><input class="liga-check" id="liga-52" onchange="saveCampo(this)" type="checkbox"/> Liga</label><label class="extra-field eventos-field">Eventos<input class="eventos-input" id="eventos-52" onchange="saveCampo(this)" placeholder="ex: Copa SP, Aberto RJ..." type="text"/></label></div></li>
+<li class="student-row"><div class="student-main"><span class="student-name-wrap"><span class="student-name">Sophia Nery Canezin</span><input class="camisa-input" id="camisa-53" onchange="saveCampo(this)" placeholder="Nº" title="Número da camisa" type="text"/></span><select class="nivel-select" id="nivel-53" onchange="saveNivel(this)"><option value="">–</option><option value="1">1</option><option value="2">2</option><option value="3">3</option></select></div><div class="student-extra"><label class="extra-field">Nasc.<input class="nasc-input" id="nasc-53" onchange="saveCampo(this)" type="date" value="2013-04-10"/></label><label class="extra-field liga-field"><input class="liga-check" id="liga-53" onchange="saveCampo(this)" type="checkbox"/> Liga</label><label class="extra-field eventos-field">Eventos<input class="eventos-input" id="eventos-53" onchange="saveCampo(this)" placeholder="ex: Copa SP, Aberto RJ..." type="text"/></label></div></li>
+<li class="student-row"><div class="student-main"><span class="student-name-wrap"><span class="student-name">Maria Luisa Tsung Gobbi</span><input class="camisa-input" id="camisa-54" onchange="saveCampo(this)" placeholder="Nº" title="Número da camisa" type="text"/></span><select class="nivel-select" id="nivel-54" onchange="saveNivel(this)"><option value="">–</option><option value="1">1</option><option value="2">2</option><option value="3">3</option></select></div><div class="student-extra"><label class="extra-field">Nasc.<input class="nasc-input" id="nasc-54" onchange="saveCampo(this)" type="date" value="2012-08-02"/></label><label class="extra-field liga-field"><input class="liga-check" id="liga-54" onchange="saveCampo(this)" type="checkbox"/> Liga</label><label class="extra-field eventos-field">Eventos<input class="eventos-input" id="eventos-54" onchange="saveCampo(this)" placeholder="ex: Copa SP, Aberto RJ..." type="text"/></label></div></li>
+<li class="student-row"><div class="student-main"><span class="student-name-wrap"><span class="student-name">Isabela Pinheiro Tavares</span><input class="camisa-input" id="camisa-55" onchange="saveCampo(this)" placeholder="Nº" title="Número da camisa" type="text"/></span><select class="nivel-select" id="nivel-55" onchange="saveNivel(this)"><option value="">–</option><option value="1">1</option><option value="2">2</option><option value="3">3</option></select></div><div class="student-extra"><label class="extra-field">Nasc.<input class="nasc-input" id="nasc-55" onchange="saveCampo(this)" type="date" value="2013-02-15"/></label><label class="extra-field liga-field"><input class="liga-check" id="liga-55" onchange="saveCampo(this)" type="checkbox"/> Liga</label><label class="extra-field eventos-field">Eventos<input class="eventos-input" id="eventos-55" onchange="saveCampo(this)" placeholder="ex: Copa SP, Aberto RJ..." type="text"/></label></div></li>
+<li class="student-row"><div class="student-main"><span class="student-name-wrap"><span class="student-name">Samira Amaral</span><input class="camisa-input" id="camisa-56" onchange="saveCampo(this)" placeholder="Nº" title="Número da camisa" type="text"/></span><select class="nivel-select" id="nivel-56" onchange="saveNivel(this)"><option value="">–</option><option value="1">1</option><option value="2">2</option><option value="3">3</option></select></div><div class="student-extra"><label class="extra-field">Nasc.<input class="nasc-input" id="nasc-56" onchange="saveCampo(this)" type="date"/></label><label class="extra-field liga-field"><input class="liga-check" id="liga-56" onchange="saveCampo(this)" type="checkbox"/> Liga</label><label class="extra-field eventos-field">Eventos<input class="eventos-input" id="eventos-56" onchange="saveCampo(this)" placeholder="ex: Copa SP, Aberto RJ..." type="text"/></label></div></li>
+<li class="student-row"><div class="student-main"><span class="student-name-wrap"><span class="student-name">Maria Julia Campos</span><input class="camisa-input" id="camisa-57" onchange="saveCampo(this)" placeholder="Nº" title="Número da camisa" type="text"/></span><select class="nivel-select" id="nivel-57" onchange="saveNivel(this)"><option value="">–</option><option value="1">1</option><option value="2">2</option><option value="3">3</option></select></div><div class="student-extra"><label class="extra-field">Nasc.<input class="nasc-input" id="nasc-57" onchange="saveCampo(this)" type="date"/></label><label class="extra-field liga-field"><input class="liga-check" id="liga-57" onchange="saveCampo(this)" type="checkbox"/> Liga</label><label class="extra-field eventos-field">Eventos<input class="eventos-input" id="eventos-57" onchange="saveCampo(this)" placeholder="ex: Copa SP, Aberto RJ..." type="text"/></label></div></li>
+<li class="student-row"><div class="student-main"><span class="student-name-wrap"><span class="student-name">Stefany Pires</span><input class="camisa-input" id="camisa-58" onchange="saveCampo(this)" placeholder="Nº" title="Número da camisa" type="text"/></span><select class="nivel-select" id="nivel-58" onchange="saveNivel(this)"><option value="">–</option><option value="1">1</option><option value="2">2</option><option value="3">3</option></select></div><div class="student-extra"><label class="extra-field">Nasc.<input class="nasc-input" id="nasc-58" onchange="saveCampo(this)" type="date"/></label><label class="extra-field liga-field"><input class="liga-check" id="liga-58" onchange="saveCampo(this)" type="checkbox"/> Liga</label><label class="extra-field eventos-field">Eventos<input class="eventos-input" id="eventos-58" onchange="saveCampo(this)" placeholder="ex: Copa SP, Aberto RJ..." type="text"/></label></div></li>
+</ul>
+</div>
+</div>
+</section>
+<!-- 9-MEDIO -->
+<section class="category-section" id="sub17">
+<div class="cat-title cat-sub17"><span>9º ao médio</span></div>
+<div class="teacher-filter" data-section="sub17">
+<button class="filter-btn active" data-filter="rafa" onclick="filtrarProfessor('sub17','rafa',this)">Rafa</button>
+</div>
+<div class="teacher-grid">
+<div class="teacher-card rafa">
+<div class="teacher-header">
+<h3>Rafa</h3>
+<span class="badge">0 alunos</span>
+</div>
+<ul class="student-list">
+</ul>
+</div>
+</div>
+</section>
+</div>
+<footer>Colégio Aubrick — organização gerada a partir do caderno de chamada</footer>
+</div>
+<script>
+  // ======================================================================
+  // SENHAS POR UNIDADE — cada unidade tem sua própria senha e seu
+  // próprio banco de dados (uma unidade não vê nem edita os dados da
+  // outra). Existe também uma senha de administrador, que só serve pra
+  // VISUALIZAR (sem poder editar nada) — dá pra escolher qual unidade ver.
+  // Lista baseada em https://h10escoladevolei.com.br/unidades — se abrir
+  // uma unidade nova no futuro, é só adicionar ela aqui.
+  // ======================================================================
+  const UNIDADES_OFICIAIS = [
+    { id:'aubrick-geral',  nome:'Colégio Aubrick',  senha:'aubrick2026' }
+  ];
+  const ADMIN_SENHA = 'aubrickadmin';
+  const CHAVE_ACESSO_LOCAL = "aubrick_acesso_liberado";
+
+  // Sessão atual: { role: 'unidade' | 'admin', unidadeId: '...' (só quando role é 'unidade') }
+  let sessao = { role:null, unidadeId:null };
+
+  function encontrarUnidadePorSenha(senhaDigitada){
+    const s = senhaDigitada.trim().toLowerCase();
+    return UNIDADES_OFICIAIS.find(u=>u.senha.toLowerCase() === s) || null;
+  }
+
+  function mostrarErroLogin(msg){
+    document.getElementById('loginError').textContent = msg;
+  }
+
+  function tentarLogin(){
+    const senhaDigitada = document.getElementById('loginSenha').value;
+    if(!senhaDigitada){
+      mostrarErroLogin('Digite a senha de acesso.');
+      return;
+    }
+    const senha = senhaDigitada.trim();
+    let novaSessao;
+    if(senha.toLowerCase() === ADMIN_SENHA.toLowerCase()){
+      novaSessao = { role:'admin', unidadeId:null };
+    }else{
+      const unidade = encontrarUnidadePorSenha(senha);
+      if(!unidade){
+        mostrarErroLogin('Senha incorreta.');
+        return;
+      }
+      novaSessao = { role:'unidade', unidadeId: unidade.id };
+    }
+    mostrarErroLogin('');
+    sessao = novaSessao;
+    try{ localStorage.setItem(CHAVE_ACESSO_LOCAL, JSON.stringify(sessao)); }catch(e){}
+    liberarAcesso();
+  }
+
+  function fazerLogout(){
+    try{ localStorage.removeItem(CHAVE_ACESSO_LOCAL); }catch(e){}
+    document.getElementById('loginSenha').value = '';
+    sessao = { role:null, unidadeId:null };
+    mostrarLogin();
+  }
+
+  function mostrarApp(){
+    document.getElementById('loginScreen').style.display = 'none';
+    document.getElementById('appContent').style.display = 'block';
+  }
+
+  function mostrarLogin(){
+    document.getElementById('appContent').style.display = 'none';
+    document.getElementById('loginScreen').style.display = 'flex';
+    document.getElementById('loginLoading').style.display = 'none';
+  }
+
+  // Depois da senha certa: entra no app e carrega o banco de dados da unidade
+  // (ou, no caso do administrador, a lista de unidades pra escolher).
+  function liberarAcesso(){
+    mostrarApp();
+    aplicarModoConformeSessao();
+    iniciarBancoDeDados();
+  }
+
+  // Ao carregar a página: se a senha já foi validada antes neste navegador, entra direto.
+  function verificarAcessoAoCarregar(){
+    let salvo = null;
+    try{ salvo = localStorage.getItem(CHAVE_ACESSO_LOCAL); }catch(e){}
+    if(salvo){
+      try{
+        const obj = JSON.parse(salvo);
+        if(obj && obj.role){
+          sessao = obj;
+          liberarAcesso();
+          return;
+        }
+      }catch(e){}
+    }
+    mostrarLogin();
+  }
+
+  // Aplica (ou tira) o modo "somente leitura" na tela conforme o tipo de
+  // sessão. Administrador nunca pode editar nada — só visualizar.
+  function aplicarModoConformeSessao(){
+    const ehAdmin = sessao.role === 'admin';
+    document.body.classList.toggle('modo-admin', ehAdmin);
+    const badge = document.getElementById('adminBadge');
+    if(badge) badge.style.display = ehAdmin ? 'inline-block' : 'none';
+    const label = document.getElementById('unidadeLabel');
+    if(label) label.style.display = ehAdmin ? 'none' : '';
+    const select = document.getElementById('unidadeSeletorAdmin');
+    if(select) select.style.display = ehAdmin ? 'inline-block' : 'none';
+    const btnCompartilhar = document.getElementById('btnGerarCompartilhar');
+    if(btnCompartilhar) btnCompartilhar.style.display = ehAdmin ? 'none' : '';
+  }
+
+  document.getElementById('loginSenha').addEventListener('keydown', function(ev){
+    if(ev.key === 'Enter'){ ev.preventDefault(); tentarLogin(); }
+  });
+
+  // A verificação de acesso acontece no final do script principal,
+  // depois que todas as funções de inicialização já foram declaradas.
+</script>
+<script>
+  const buttons = document.querySelectorAll('.tab-btn');
+  const sections = document.querySelectorAll('.category-section');
+  buttons.forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      buttons.forEach(b=>b.classList.remove('active'));
+      sections.forEach(s=>s.classList.remove('active'));
+      btn.classList.add('active');
+      document.getElementById(btn.dataset.target).classList.add('active');
+      atualizarBotaoCategorias(btn);
+      fecharModalCategorias();
+    });
+  });
+
+  // ---- Modal de seleção de categorias ----
+  function atualizarBotaoCategorias(btn){
+    const label = document.getElementById('categoriaAtualLabel');
+    const badge = document.getElementById('categoriaAtualBadge');
+    if(label){
+      const nomeCompleto = btn.textContent.trim().replace(/\s*\d+\s*$/, '').trim();
+      label.textContent = nomeCompleto.replace(/^🏐\s*/, '');
+    }
+    if(badge){
+      const contBtn = btn.querySelector('.count-badge');
+      badge.textContent = contBtn ? contBtn.textContent : '';
+    }
+  }
+
+  function abrirModalCategorias(){
+    const modal = document.getElementById('modalCategorias');
+    if(modal) modal.style.display = 'flex';
+  }
+
+  function fecharModalCategorias(){
+    const modal = document.getElementById('modalCategorias');
+    if(modal) modal.style.display = 'none';
+  }
+
+  function abrirModalConfiguracoes(){
+    const modal = document.getElementById('modalConfiguracoes');
+    if(modal) modal.style.display = 'flex';
+  }
+
+  function abrirConfiguracoesParaAdicionarProfessor(){
+    abrirModalConfiguracoes();
+    const input = document.getElementById('novoProfessorInput');
+    if(input) input.focus();
+  }
+
+  // Mostra um aviso convidando a cadastrar o primeiro professor quando a
+  // unidade ainda não tem nenhum (só faz sentido pra quem está logado
+  // naquela unidade — administrador é só visualização).
+  function atualizarAvisoSemProfessor(){
+    const aviso = document.getElementById('avisoSemProfessor');
+    if(!aviso) return;
+    const temProfessor = document.querySelectorAll('#master .teacher-card').length > 0;
+    aviso.style.display = (!temProfessor && sessao.role === 'unidade') ? 'block' : 'none';
+  }
+
+  function fecharModalConfiguracoes(){
+    const modal = document.getElementById('modalConfiguracoes');
+    if(modal) modal.style.display = 'none';
+  }
+
+  // Sincroniza o botão de categorias com a aba ativa inicial
+  atualizarBotaoCategorias(document.querySelector('.tab-btn.active') || buttons[0]);
+
+
+  // ---- Salvamento automático dos níveis (localStorage do navegador) ----
+  const NIVEL_PREFIX = 'aubrick_nivel_';
+
+  function saveNivel(selectEl){
+    try{
+      localStorage.setItem(NIVEL_PREFIX + selectEl.id, selectEl.value);
+    }catch(e){
+      console.error('Erro ao salvar nível:', e);
+    }
+    salvarNoBancoDebounced();
+  }
+
+  function loadNiveis(){
+    const selects = document.querySelectorAll('.nivel-select');
+    selects.forEach(sel=>{
+      try{
+        const saved = localStorage.getItem(NIVEL_PREFIX + sel.id);
+        if(saved){
+          sel.value = saved;
+        }
+      }catch(e){
+        // ignora se não houver valor salvo
+      }
+    });
+  }
+
+  // ---- Salvamento automático de nascimento, liga e eventos (localStorage) ----
+  const CAMPO_PREFIX = 'aubrick_campo_';
+
+  // Converte um texto de data antigo (ex: "04/01/1970" ou "2024-01-04") para
+  // o formato aaaa-mm-dd exigido pelo campo <input type="date">. Datas
+  // incompletas (só mês/ano, do caderno antigo) não têm como virar uma data
+  // completa, então voltam vazias — o professor escolhe a data certa no
+  // calendário quando souber.
+  function paraDataISO(texto){
+    if(!texto) return '';
+    const t = texto.trim();
+    if(/^\d{4}-\d{2}-\d{2}$/.test(t)) return t;
+    const m = t.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
+    if(m){
+      const [, dd, mm, yyyy] = m;
+      return yyyy + '-' + mm.padStart(2,'0') + '-' + dd.padStart(2,'0');
+    }
+    return '';
+  }
+
+  function saveCampo(el){
+    try{
+      const valor = el.type === 'checkbox' ? (el.checked ? '1' : '') : el.value;
+      localStorage.setItem(CAMPO_PREFIX + el.id, valor);
+    }catch(e){
+      console.error('Erro ao salvar campo:', e);
+    }
+    salvarNoBancoDebounced();
+  }
+
+  function loadCampos(){
+    document.querySelectorAll('.nasc-input, .liga-check, .eventos-input, .camisa-input').forEach(el=>{
+      try{
+        const saved = localStorage.getItem(CAMPO_PREFIX + el.id);
+        if(saved !== null){
+          if(el.type === 'checkbox'){
+            el.checked = saved === '1';
+          }else if(el.type === 'date'){
+            el.value = paraDataISO(saved);
+          }else{
+            el.value = saved;
+          }
+        }
+      }catch(e){
+        // ignora se não houver valor salvo
+      }
+    });
+  }
+
+  // ======================================================================
+  // NOVO: filtro por professor dentro de cada categoria
+  // ======================================================================
+  function filtrarProfessor(sectionId, professor, btnEl){
+    const section = document.getElementById(sectionId);
+    if(!section) return;
+    section.querySelectorAll('.teacher-filter .filter-btn').forEach(b=>b.classList.remove('active'));
+    btnEl.classList.add('active');
+    const grid = section.querySelector('.teacher-grid');
+    const cards = section.querySelectorAll('.teacher-card');
+    cards.forEach(card=>{
+      const mostrar = card.classList.contains(professor);
+      card.classList.toggle('hidden-by-filter', !mostrar);
+    });
+    const visiveis = Array.from(cards).filter(c=>!c.classList.contains('hidden-by-filter')).length;
+    if(grid) grid.classList.toggle('single-card', visiveis === 1);
+  }
+
+  // ======================================================================
+  // Exportar planilha (.xlsx) com os dados da unidade logada
+  // ======================================================================
+
+  // A biblioteca de planilhas (SheetJS) só é carregada quando o botão é
+  // clicado pela primeira vez, pra não deixar o app mais pesado pra quem
+  // nunca usa essa função.
+  let sheetJsCarregando = null;
+  function carregarSheetJS(){
+    if(window.XLSX) return Promise.resolve();
+    if(sheetJsCarregando) return sheetJsCarregando;
+    sheetJsCarregando = new Promise((resolve, reject)=>{
+      const script = document.createElement('script');
+      script.src = 'https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js';
+      script.onload = () => resolve();
+      script.onerror = () => { sheetJsCarregando = null; reject(new Error('Falha ao carregar a biblioteca de planilhas.')); };
+      document.head.appendChild(script);
+    });
+    return sheetJsCarregando;
+  }
+
+  // Nome "limpo" da categoria (aba), a partir do botão de categoria
+  // correspondente — ex.: "🏐 Master 23" -> "Master".
+  function nomeCategoriaExibicao(sectionId){
+    const btn = document.querySelector('.tab-btn[data-target="' + sectionId + '"]');
+    if(!btn) return sectionId;
+    return btn.textContent.trim().replace(/\s*\d+\s*$/, '').trim().replace(/^🏐\s*/, '');
+  }
+
+  // Percorre todas as categorias/turmas da unidade logada (a que está na
+  // tela agora) e monta as três tabelas que viram abas na planilha: alunos,
+  // horários e histórico de presença.
+  function coletarDadosExportacaoUnidade(){
+    const alunos = [['Categoria', 'Professor', 'Aluno', 'Número', 'Nível', 'Nascimento', 'Liga', 'Eventos']];
+    const horarios = [['Categoria', 'Professor', 'Dia', 'Horário']];
+    const presencasLista = [['Categoria', 'Professor', 'Aluno', 'Data', 'Presença']];
+
+    document.querySelectorAll('.category-section').forEach(sectionEl=>{
+      const categoria = nomeCategoriaExibicao(sectionEl.id);
+      sectionEl.querySelectorAll('.teacher-card').forEach(card=>{
+        const professorId = Array.from(card.classList).find(c=>c !== 'teacher-card' && c !== 'hidden-by-filter');
+        if(!professorId) return;
+        const professorNome = nomeTurmaExibicao(sectionEl.id, professorId);
+        const key = chaveTurma(sectionEl.id, professorId);
+
+        card.querySelectorAll('li.student-row').forEach(li=>{
+          const nome = (li.querySelector('.student-name') || {}).textContent || '';
+          const numero = (li.querySelector('.camisa-input') || {}).value || '';
+          const nivelSelect = li.querySelector('.nivel-select');
+          const nivel = nivelSelect ? nivelSelect.value : '';
+          const nasc = (li.querySelector('.nasc-input') || {}).value || '';
+          const ligaCheck = li.querySelector('.liga-check');
+          const liga = ligaCheck && ligaCheck.checked ? 'Sim' : 'Não';
+          const eventos = (li.querySelector('.eventos-input') || {}).value || '';
+          alunos.push([categoria, professorNome, nome.trim(), numero, nivel, nasc, liga, eventos]);
+        });
+
+        (horariosTurma[key] || []).forEach(h=>{
+          horarios.push([categoria, professorNome, h.dia, h.hora]);
+        });
+
+        alunosDaTurma(sectionEl.id, professorId).forEach(a=>{
+          const registros = presencas[a.id] || {};
+          Object.keys(registros).sort().forEach(data=>{
+            presencasLista.push([categoria, professorNome, a.nome, data, registros[data] ? 'Presente' : 'Falta']);
+          });
+        });
+      });
+    });
+
+    return { alunos, horarios, presencas: presencasLista };
+  }
+
+  function exportarPlanilhaUnidade(){
+    const btn = document.getElementById('btnGerarCompartilhar');
+    const textoOriginal = btn ? btn.textContent : '';
+    if(btn){ btn.disabled = true; btn.textContent = '⏳ Gerando planilha...'; }
+
+    carregarSheetJS().then(()=>{
+      const dados = coletarDadosExportacaoUnidade();
+      const wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(dados.alunos), 'Alunos');
+      XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(dados.horarios), 'Horários');
+      XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(dados.presencas), 'Presenças');
+      const nomeArquivo = 'aubrick_' + (unidadeAtivaId || 'turmas') + '.xlsx';
+      XLSX.writeFile(wb, nomeArquivo);
+      if(btn){ btn.disabled = false; btn.textContent = textoOriginal || '📊 Exportar planilha'; }
+    }).catch(err=>{
+      console.error(err);
+      if(btn){
+        btn.textContent = '❌ Falha — tente de novo';
+        setTimeout(()=>{ btn.disabled = false; btn.textContent = textoOriginal || '📊 Exportar planilha'; }, 3000);
+      }
+    });
+  }
+
+  // Aplica o filtro padrão (Rafa) em cada categoria assim que a página carrega
+  function aplicarFiltroInicial(){
+    document.querySelectorAll('.teacher-filter').forEach(barra=>{
+      const sectionId = barra.dataset.section;
+      const ativo = barra.querySelector('.filter-btn.active') || barra.querySelector('.filter-btn');
+      if(ativo) filtrarProfessor(sectionId, ativo.dataset.filter, ativo);
+    });
+  }
+
+  // ======================================================================
+  // NOVO: ordenar listas em ordem alfabética
+  // ======================================================================
+  function ordenarListas(){
+    document.querySelectorAll('ul.student-list').forEach(ul=>{
+      const linhas = Array.from(ul.querySelectorAll('li.student-row'));
+      linhas.sort((a,b)=>{
+        const nomeA = a.querySelector('.student-name')?.textContent.trim() || '';
+        const nomeB = b.querySelector('.student-name')?.textContent.trim() || '';
+        return nomeA.localeCompare(nomeB, 'pt-BR', {sensitivity:'base'});
+      });
+      linhas.forEach(li=>ul.appendChild(li));
+    });
+  }
+
+  // ======================================================================
+  // NOVO: atualizar contadores (badge de cada professor e de cada aba)
+  // ======================================================================
+  function atualizarContadores(){
+    document.querySelectorAll('.category-section').forEach(sectionEl=>{
+      let total = 0;
+      sectionEl.querySelectorAll('.teacher-card').forEach(cardEl=>{
+        const qtd = cardEl.querySelectorAll('ul.student-list > li.student-row').length;
+        total += qtd;
+        const badge = cardEl.querySelector('.teacher-header .badge');
+        if(badge) badge.textContent = qtd + (qtd === 1 ? ' aluno' : ' alunos');
+      });
+      const tabBtn = document.querySelector(`.tab-btn[data-target="${sectionEl.id}"] .count-badge`);
+      if(tabBtn) tabBtn.textContent = total;
+      if(sectionEl.classList.contains('active')){
+        const badgeAtual = document.getElementById('categoriaAtualBadge');
+        if(badgeAtual) badgeAtual.textContent = total;
+      }
+    });
+  }
+
+  // ======================================================================
+  // NOVO: adicionar aluno (botão "+" no fim de cada lista)
+  // ======================================================================
+  function escapeHtml(txt){
+    const d = document.createElement('div');
+    d.textContent = txt;
+    return d.innerHTML;
+  }
+
+  function gerarIdNovoAluno(){
+    return 'novo' + Date.now() + Math.floor(Math.random()*1000);
+  }
+
+  function criarLiAluno(uid, nome){
+    const li = document.createElement('li');
+    li.className = 'student-row';
+    li.dataset.id = uid;
+    li.innerHTML =
+      '<div class="student-main">' +
+        '<span class="student-name-wrap"><span class="student-name">' + escapeHtml(nome) + '</span>' +
+        '<input class="camisa-input" id="camisa-' + uid + '" onchange="saveCampo(this)" placeholder="Nº" title="Número da camisa" type="text"/></span>' +
+        '<select class="nivel-select" id="nivel-' + uid + '" onchange="saveNivel(this)">' +
+          '<option value="">–</option><option value="1">1</option><option value="2">2</option><option value="3">3</option>' +
+        '</select>' +
+      '</div>' +
+      '<div class="student-extra">' +
+        '<label class="extra-field">Nasc.<input class="nasc-input" id="nasc-' + uid + '" onchange="saveCampo(this)" type="date"/></label>' +
+        '<label class="extra-field liga-field"><input class="liga-check" id="liga-' + uid + '" onchange="saveCampo(this)" type="checkbox"/> Liga</label>' +
+        '<label class="extra-field eventos-field">Eventos<input class="eventos-input" id="eventos-' + uid + '" onchange="saveCampo(this)" placeholder="ex: Copa SP, Aberto RJ..." type="text"/></label>' +
+      '</div>';
+    return li;
+  }
+
+  function inserirOrdenado(ul, li){
+    const nomeNovo = li.querySelector('.student-name').textContent.trim();
+    const linhas = Array.from(ul.querySelectorAll('li.student-row'));
+    let inserido = false;
+    for(const existente of linhas){
+      const nomeExistente = existente.querySelector('.student-name')?.textContent.trim() || '';
+      if(nomeNovo.localeCompare(nomeExistente, 'pt-BR', {sensitivity:'base'}) < 0){
+        ul.insertBefore(li, existente);
+        inserido = true;
+        break;
+      }
+    }
+    if(!inserido) ul.appendChild(li);
+  }
+
+  // Guarda a lista de alunos adicionados manualmente (para sincronizar entre aparelhos)
+  let extrasAlunos = [];
+  // Ids de alunos excluídos (originais e adicionados) — para não voltarem depois de sincronizar
+  let alunosRemovidos = [];
+  // Nomes editados de alunos originais: { id: "novo nome" }
+  let alunosRenomeados = {};
+
+  // ======================================================================
+  // NOVO: unidades (cada unidade tem suas próprias turmas/alunos —
+  // trocar de unidade troca os cards na tela) e professores (Rafa e Manoel
+  // são os originais, mas agora podem ser renomeados/excluídos por unidade,
+  // e cada unidade pode ter professores extras cadastrados nas Configurações).
+  // ======================================================================
+  const UNIDADE_PADRAO_ID = 'aubrick-geral';
+  let unidadeAtual = 'Colégio Aubrick';
+  // unidades: lista das unidades oficiais (id, nome, senha, blobId do banco
+  // próprio dela). Começa com a lista oficial e é completada/atualizada
+  // assim que o índice de unidades é carregado do servidor.
+  let unidades = UNIDADES_OFICIAIS.map(u=>({ id:u.id, nome:u.nome, senha:u.senha, blobId:null }));
+  let unidadeAtivaId = UNIDADE_PADRAO_ID;
+  // Dados legados (do formato antigo, com tudo num banco só) que ainda não
+  // foram migrados pro banco próprio da unidade — usado só durante a leitura.
+  let dadosLegadoPorUnidade = {};
+
+  let professoresExtras = [];
+  let professoresRenomeados = {}; // { rafa: 'Novo nome', manoel: '...' } — só para os dois professores originais
+  let professoresExcluidos = []; // ids de professores originais (rafa/manoel) excluídos NESTA unidade
+  const PALETA_PROFESSORES_EXTRA = ['#5b3ea6', '#0f8a6a', '#c23b6b', '#1c7fbf', '#b5590c', '#2e8b7a'];
+
+  // ---- Horários de turma e chamada/presença ----
+  let horariosTurma = {}; // { "sectionId-professorId": [{dia:'Segunda', hora:'18:00'}, ...] }
+  let presencas = {};     // { studentId: { 'YYYY-MM-DD': true|false } }
+  let turmaAtualHorarios = null;
+  let turmaAtualChamada = null;
+  let turmaAtualRelatorio = null;
+  const DIAS_SEMANA = ['Segunda','Terça','Quarta','Quinta','Sexta','Sábado','Domingo'];
+
+  // ---- Foto do aluno (exclusivo do app instalado — PWA) ----
+  let fotosAlunos = {};   // { studentId: 'data:image/jpeg;base64,...' } — comprimida antes de guardar
+  let alunoAtualFoto = null;
+  const FOTO_MAX_LADO = 240;           // px — maior lado da miniatura depois de redimensionada
+  const FOTO_QUALIDADE = 0.6;          // qualidade do JPEG (0 a 1)
+  const FOTO_TAMANHO_MAX_B64 = 120000; // limite de segurança (~90KB) pra não estourar o banco
+
+  // Detecta se o site está rodando como app instalado (PWA), não como aba
+  // normal do navegador — a foto do aluno só pode ser adicionada/trocada
+  // nesse modo (tirar foto pela câmera exige isso na prática, e mantém a
+  // ação de edição fora do navegador comum, como pedido).
+  function ehPWAInstalado(){
+    return window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
+  }
+
+  // "Foto" da tela original (com os alunos reais de verdade da unidade
+  // padrão) tirada assim que a página carrega, antes de qualquer alteração.
+  // É usada pra: (1) restaurar os cards da unidade padrão depois de trocar
+  // pra outra unidade e voltar; (2) gerar cards em branco (mesmo layout,
+  // sem alunos) pras outras unidades. Também guarda o sufixo de cada
+  // professor por categoria (ex: " · Competitivo" no Master) pra manter
+  // esse texto mesmo depois de um professor ser renomeado.
+  const snapshotPristino = {};
+  const sufixosProfessor = {};
+  function capturarSnapshotPristino(){
+    document.querySelectorAll('.category-section').forEach(sec=>{
+      const grid = sec.querySelector('.teacher-grid');
+      if(!grid) return;
+      snapshotPristino[sec.id] = grid.innerHTML;
+      grid.querySelectorAll('.teacher-card').forEach(card=>{
+        const id = Array.from(card.classList).find(c => c !== 'teacher-card' && c !== 'hidden-by-filter');
+        const h3 = card.querySelector('.teacher-header h3');
+        if(!id || !h3) return;
+        const partes = h3.textContent.trim().split(' · ');
+        sufixosProfessor[sec.id + ':' + id] = partes.length > 1 ? (' · ' + partes.slice(1).join(' · ')) : '';
+      });
+    });
+  }
+  capturarSnapshotPristino();
+
+  // Unidades que não são a padrão (Brooklin · Arizona) começam totalmente
+  // vazias — sem Rafa, sem Manoel, sem nenhum professor. Só quando alguém
+  // dessa unidade cadastra o primeiro professor (nas Configurações) que o
+  // card dele aparece — cada unidade tem seus próprios professores.
+  function gerarGridVazio(sectionId){
+    return '';
+  }
+
+  function renderizarGridsParaUnidade(id){
+    const ehPadrao = id === UNIDADE_PADRAO_ID;
+    document.querySelectorAll('.category-section').forEach(sec=>{
+      const grid = sec.querySelector('.teacher-grid');
+      if(!grid) return;
+      grid.innerHTML = ehPadrao ? (snapshotPristino[sec.id] || '') : gerarGridVazio(sec.id);
+    });
+  }
+
+  function corProfessorExtra(indice){
+    return PALETA_PROFESSORES_EXTRA[indice % PALETA_PROFESSORES_EXTRA.length];
+  }
+
+  function atualizarUnidadeNaTela(){
+    const label = document.getElementById('unidadeLabel');
+    if(label) label.textContent = '📍 Unidade ' + unidadeAtual;
+  }
+
+  function dadosPadraoUnidade(){
+    return { campos:{}, extras:[], removidos:[], renomeados:{}, professoresExtras:[], professoresRenomeados:{}, professoresExcluidos:[], horariosTurma:{}, presencas:{}, fotosAlunos:{} };
+  }
+
+  function capturarDadosUnidadeAtual(){
+    return {
+      campos: coletarCampos(),
+      extras: extrasAlunos,
+      removidos: alunosRemovidos,
+      renomeados: alunosRenomeados,
+      professoresExtras: professoresExtras,
+      professoresRenomeados: professoresRenomeados,
+      professoresExcluidos: professoresExcluidos,
+      horariosTurma: horariosTurma,
+      presencas: presencas,
+      fotosAlunos: fotosAlunos
+    };
+  }
+
+  function nomeExibicaoProfessor(id){
+    if(professoresRenomeados[id]) return professoresRenomeados[id];
+    if(id === 'rafa') return 'Rafa';
+    if(id === 'manoel') return 'Manoel';
+    const extra = professoresExtras.find(p=>p.id === id);
+    return extra ? extra.nome : id;
+  }
+
+  function aplicarNomeProfessorNaTela(id, nome){
+    document.querySelectorAll('.teacher-card.' + id).forEach(card=>{
+      const sectionId = card.closest('.category-section')?.id;
+      const h3 = card.querySelector('.teacher-header h3');
+      if(!h3 || !sectionId) return;
+      const sufixo = sufixosProfessor[sectionId + ':' + id] || '';
+      h3.textContent = nome + sufixo;
+    });
+    document.querySelectorAll('.teacher-filter [data-filter="' + id + '"]').forEach(btn=>{ btn.textContent = nome; });
+    document.querySelectorAll('.transfer-professor-toggle [data-professor="' + id + '"]').forEach(btn=>{ btn.textContent = nome; });
+  }
+
+  // Cria (se ainda não existir) o card do professor extra em cada categoria,
+  // o botão de filtro correspondente e o botão no modal de transferência.
+  function renderizarProfessorExtra(prof, indice){
+    let estiloEl = document.getElementById('estiloProfessoresExtras');
+    if(!estiloEl){
+      estiloEl = document.createElement('style');
+      estiloEl.id = 'estiloProfessoresExtras';
+      document.head.appendChild(estiloEl);
+    }
+    const cor = corProfessorExtra(indice);
+    if(!estiloEl.textContent.includes('.teacher-card.' + prof.id + '{')){
+      estiloEl.textContent +=
+        '.teacher-card.' + prof.id + '{ border-top-color:' + cor + '; }' +
+        '.teacher-card.' + prof.id + ' .teacher-header{ background:' + cor + '; color:white; }';
+    }
+
+    document.querySelectorAll('.category-section').forEach(sectionEl=>{
+      const sectionId = sectionEl.id;
+      const filtro = sectionEl.querySelector('.teacher-filter');
+      if(filtro && !filtro.querySelector('[data-filter="' + prof.id + '"]')){
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'filter-btn';
+        btn.dataset.filter = prof.id;
+        btn.textContent = prof.nome;
+        btn.onclick = ()=>filtrarProfessor(sectionId, prof.id, btn);
+        filtro.appendChild(btn);
+      }
+      const grid = sectionEl.querySelector('.teacher-grid');
+      if(grid && !grid.querySelector('.teacher-card.' + prof.id)){
+        const card = document.createElement('div');
+        card.className = 'teacher-card ' + prof.id;
+        card.innerHTML =
+          '<div class="teacher-header"><h3>' + escapeHtml(prof.nome) + '</h3><span class="badge">0 alunos</span></div>' +
+          '<ul class="student-list"></ul>';
+        if(sectionId === 'master'){
+          card.querySelectorAll('.liga-field').forEach(el=>el.remove());
+        }
+        grid.appendChild(card);
+      }
+    });
+
+    const toggle = document.querySelector('.transfer-professor-toggle');
+    if(toggle && !toggle.querySelector('[data-professor="' + prof.id + '"]')){
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'filter-btn';
+      btn.dataset.professor = prof.id;
+      btn.textContent = prof.nome;
+      btn.onclick = ()=>selecionarProfessorTransferencia(prof.id, btn);
+      toggle.appendChild(btn);
+    }
+  }
+
+  function renderizarTodosProfessoresExtras(){
+    professoresExtras.forEach((prof, indice)=>renderizarProfessorExtra(prof, indice));
+  }
+
+  // ======================================================================
+  // Horários de turma, chamada e relatório de presença
+  // ======================================================================
+  function chaveTurma(sectionId, professorId){
+    return sectionId + '-' + professorId;
+  }
+
+  function turmaCardEl(sectionId, professorId){
+    const section = document.getElementById(sectionId);
+    return section ? section.querySelector('.teacher-card.' + professorId) : null;
+  }
+
+  function nomeTurmaExibicao(sectionId, professorId){
+    const card = turmaCardEl(sectionId, professorId);
+    const h3 = card && card.querySelector('.teacher-header h3');
+    return h3 ? h3.textContent.trim() : nomeExibicaoProfessor(professorId);
+  }
+
+  function alunosDaTurma(sectionId, professorId){
+    const card = turmaCardEl(sectionId, professorId);
+    if(!card) return [];
+    return Array.from(card.querySelectorAll('li.student-row')).map(li=>({
+      id: li.dataset.id,
+      nome: (li.querySelector('.student-name') || {}).textContent || ''
+    })).filter(a=>a.id);
+  }
+
+  // Adiciona a barrinha de botões (Horários / Chamada / Relatório) em cada
+  // teacher-card que ainda não tem uma — chamado sempre que os cards são
+  // (re)montados, então funciona tanto pra Rafa/Manoel quanto pra
+  // professores extras, em qualquer categoria.
+  function montarToolbarsTurma(){
+    document.querySelectorAll('.teacher-card').forEach(card=>{
+      if(card.querySelector('.turma-toolbar')) return;
+      const header = card.querySelector('.teacher-header');
+      const sectionEl = card.closest('.category-section');
+      if(!header || !sectionEl) return;
+      const professorId = Array.from(card.classList).find(c=>c !== 'teacher-card' && c !== 'hidden-by-filter');
+      if(!professorId) return;
+      const sectionId = sectionEl.id;
+      const toolbar = document.createElement('div');
+      toolbar.className = 'turma-toolbar';
+      toolbar.innerHTML =
+        '<button type="button" class="turma-btn turma-horario-btn" onclick="abrirModalHorarios(\'' + sectionId + '\',\'' + professorId + '\')">🗓️ Horários</button>' +
+        '<button type="button" class="turma-btn turma-chamada-btn" onclick="abrirModalChamada(\'' + sectionId + '\',\'' + professorId + '\')">✅ Chamada</button>' +
+        '<button type="button" class="turma-btn turma-relatorio-btn" onclick="abrirModalRelatorio(\'' + sectionId + '\',\'' + professorId + '\')">📊 Relatório</button>';
+      header.after(toolbar);
+    });
+  }
+
+  // ---- Horários ----
+  function abrirModalHorarios(sectionId, professorId){
+    turmaAtualHorarios = { sectionId, professorId };
+    document.getElementById('horarioTurmaNome').textContent = nomeTurmaExibicao(sectionId, professorId);
+    renderizarListaHorarios();
+    document.getElementById('modalHorarios').style.display = 'flex';
+  }
+
+  function fecharModalHorarios(){
+    document.getElementById('modalHorarios').style.display = 'none';
+    turmaAtualHorarios = null;
+  }
+
+  function renderizarListaHorarios(){
+    if(!turmaAtualHorarios) return;
+    const key = chaveTurma(turmaAtualHorarios.sectionId, turmaAtualHorarios.professorId);
+    const lista = horariosTurma[key] || [];
+    const ul = document.getElementById('horarioLista');
+    if(lista.length === 0){
+      ul.innerHTML = '<li class="horario-vazio">Nenhum horário cadastrado ainda.</li>';
+      return;
+    }
+    ul.innerHTML = lista.map((h, i)=>
+      '<li class="horario-item"><span>' + escapeHtml(h.dia) + ' às ' + escapeHtml(h.hora) + '</span>' +
+        '<button type="button" class="horario-remove-btn" onclick="removerHorario(' + i + ')" title="Remover">🗑️</button></li>'
+    ).join('');
+  }
+
+  function adicionarHorario(){
+    if(!turmaAtualHorarios) return;
+    const dia = document.getElementById('horarioDiaInput').value;
+    const hora = document.getElementById('horarioHoraInput').value;
+    if(!hora) return;
+    const key = chaveTurma(turmaAtualHorarios.sectionId, turmaAtualHorarios.professorId);
+    if(!horariosTurma[key]) horariosTurma[key] = [];
+    const jaExiste = horariosTurma[key].some(h=>h.dia === dia && h.hora === hora);
+    if(!jaExiste){
+      horariosTurma[key].push({ dia, hora });
+      horariosTurma[key].sort((a,b)=> DIAS_SEMANA.indexOf(a.dia) - DIAS_SEMANA.indexOf(b.dia) || a.hora.localeCompare(b.hora));
+    }
+    renderizarListaHorarios();
+    salvarLocalBackup();
+    salvarNoBancoDebounced();
+  }
+
+  function removerHorario(indice){
+    if(!turmaAtualHorarios) return;
+    const key = chaveTurma(turmaAtualHorarios.sectionId, turmaAtualHorarios.professorId);
+    if(!horariosTurma[key]) return;
+    horariosTurma[key].splice(indice, 1);
+    renderizarListaHorarios();
+    salvarLocalBackup();
+    salvarNoBancoDebounced();
+  }
+
+  // ---- Chamada (presença) ----
+  function hojeISO(){
+    const d = new Date();
+    const mes = String(d.getMonth() + 1).padStart(2, '0');
+    const dia = String(d.getDate()).padStart(2, '0');
+    return d.getFullYear() + '-' + mes + '-' + dia;
+  }
+
+  function abrirModalChamada(sectionId, professorId){
+    turmaAtualChamada = { sectionId, professorId };
+    document.getElementById('chamadaTurmaNome').textContent = nomeTurmaExibicao(sectionId, professorId);
+    document.getElementById('chamadaDataInput').value = hojeISO();
+    renderizarListaChamada();
+    document.getElementById('modalChamada').style.display = 'flex';
+  }
+
+  function fecharModalChamada(){
+    document.getElementById('modalChamada').style.display = 'none';
+    turmaAtualChamada = null;
+  }
+
+  function carregarChamadaData(){
+    renderizarListaChamada();
+  }
+
+  function renderizarListaChamada(){
+    if(!turmaAtualChamada) return;
+    const data = document.getElementById('chamadaDataInput').value;
+    const alunos = alunosDaTurma(turmaAtualChamada.sectionId, turmaAtualChamada.professorId);
+    const ul = document.getElementById('chamadaLista');
+    if(alunos.length === 0){
+      ul.innerHTML = '<li class="horario-vazio">Nenhum aluno nesta turma.</li>';
+      return;
+    }
+    ul.innerHTML = alunos.map(a=>{
+      const marcado = data && presencas[a.id] ? presencas[a.id][data] : undefined;
+      const presenteAtivo = marcado === true ? ' ativo' : '';
+      const faltaAtivo = marcado === false ? ' ativo' : '';
+      return '<li class="chamada-item"><span>' + escapeHtml(a.nome) + '</span>' +
+        '<span class="chamada-toggle">' +
+          '<button type="button" class="presente' + presenteAtivo + '" onclick="marcarPresenca(\'' + a.id + '\', true)">Presente</button>' +
+          '<button type="button" class="falta' + faltaAtivo + '" onclick="marcarPresenca(\'' + a.id + '\', false)">Falta</button>' +
+        '</span></li>';
+    }).join('');
+  }
+
+  function marcarPresenca(studentId, presente){
+    if(sessao.role !== 'unidade') return; // admin nunca grava nada
+    const data = document.getElementById('chamadaDataInput').value;
+    if(!data) return;
+    if(!presencas[studentId]) presencas[studentId] = {};
+    presencas[studentId][data] = presente;
+    renderizarListaChamada();
+    salvarLocalBackup();
+    salvarNoBancoDebounced();
+  }
+
+  // ---- Relatório ----
+  function abrirModalRelatorio(sectionId, professorId){
+    turmaAtualRelatorio = { sectionId, professorId };
+    document.getElementById('relatorioTurmaNome').textContent = nomeTurmaExibicao(sectionId, professorId);
+    alternarAbaRelatorio('resumo');
+    document.getElementById('modalRelatorio').style.display = 'flex';
+  }
+
+  function fecharModalRelatorio(){
+    document.getElementById('modalRelatorio').style.display = 'none';
+    turmaAtualRelatorio = null;
+  }
+
+  function alternarAbaRelatorio(aba){
+    document.querySelectorAll('.relatorio-tab-btn').forEach(b=>b.classList.toggle('active', b.dataset.tab === aba));
+    document.getElementById('relatorioResumoWrap').style.display = aba === 'resumo' ? 'block' : 'none';
+    document.getElementById('relatorioHistoricoWrap').style.display = aba === 'historico' ? 'block' : 'none';
+    if(aba === 'resumo') renderizarRelatorioResumo();
+    else renderizarRelatorioHistorico();
+  }
+
+  function todasDatasRegistradas(alunos){
+    const set = new Set();
+    alunos.forEach(a=>{
+      const registros = presencas[a.id] || {};
+      Object.keys(registros).forEach(data=>set.add(data));
+    });
+    return Array.from(set).sort();
+  }
+
+  function formatarDataCurta(iso){
+    const partes = iso.split('-');
+    if(partes.length !== 3) return iso;
+    return partes[2] + '/' + partes[1];
+  }
+
+  function renderizarRelatorioResumo(){
+    if(!turmaAtualRelatorio) return;
+    const alunos = alunosDaTurma(turmaAtualRelatorio.sectionId, turmaAtualRelatorio.professorId);
+    const ul = document.getElementById('relatorioResumoLista');
+    if(alunos.length === 0){
+      ul.innerHTML = '<li class="horario-vazio">Nenhum aluno nesta turma.</li>';
+      return;
+    }
+    ul.innerHTML = alunos.map(a=>{
+      const registros = presencas[a.id] || {};
+      const datas = Object.keys(registros);
+      const total = datas.length;
+      const presentes = datas.filter(d=>registros[d] === true).length;
+      const pct = total > 0 ? Math.round((presentes / total) * 100) : null;
+      const pctTexto = pct === null ? 'sem registros' : (pct + '% (' + presentes + '/' + total + ')');
+      const classePct = pct === null ? '' : (pct >= 80 ? 'alto' : (pct >= 50 ? 'medio' : 'baixo'));
+      return '<li class="relatorio-resumo-item"><span>' + escapeHtml(a.nome) + '</span>' +
+        '<span class="relatorio-pct ' + classePct + '">' + pctTexto + '</span></li>';
+    }).join('');
+  }
+
+  function renderizarRelatorioHistorico(){
+    if(!turmaAtualRelatorio) return;
+    const alunos = alunosDaTurma(turmaAtualRelatorio.sectionId, turmaAtualRelatorio.professorId);
+    const datas = todasDatasRegistradas(alunos);
+    const tabela = document.getElementById('relatorioHistoricoTabela');
+    if(alunos.length === 0 || datas.length === 0){
+      tabela.innerHTML = '<tr><td>Nenhum registro de chamada ainda.</td></tr>';
+      return;
+    }
+    let html = '<tr><th>Aluno</th>' + datas.map(d=>'<th>' + formatarDataCurta(d) + '</th>').join('') + '</tr>';
+    alunos.forEach(a=>{
+      const registros = presencas[a.id] || {};
+      html += '<tr><td>' + escapeHtml(a.nome) + '</td>' + datas.map(d=>{
+        const v = registros[d];
+        if(v === true) return '<td class="presenca-sim">✓</td>';
+        if(v === false) return '<td class="presenca-nao">✗</td>';
+        return '<td>–</td>';
+      }).join('') + '</tr>';
+    });
+    tabela.innerHTML = html;
+  }
+
+  function aplicarRenomeacoesProfessores(){
+    Object.keys(professoresRenomeados).forEach(id=>{
+      aplicarNomeProfessorNaTela(id, professoresRenomeados[id]);
+    });
+  }
+
+  function aplicarExclusoesProfessores(){
+    professoresExcluidos.forEach(id=>{
+      document.querySelectorAll('.teacher-card.' + id).forEach(el=>el.remove());
+      document.querySelectorAll('.teacher-filter [data-filter="' + id + '"]').forEach(el=>el.remove());
+      document.querySelectorAll('.transfer-professor-toggle [data-professor="' + id + '"]').forEach(el=>el.remove());
+    });
+  }
+
+  // Volta os botões de filtro (categorias) e do modal de transferir para o
+  // estado padrão (só Rafa/Manoel, com o nome original) antes de trocar de
+  // unidade — os cards extras somem sozinhos porque o conteúdo do
+  // teacher-grid é substituído por completo em renderizarGridsParaUnidade.
+  // Limpa as barras de filtro de professor (por categoria e a do modal de
+  // transferir) antes de montar os dados de uma unidade. Na unidade padrão
+  // (Brooklin · Arizona) volta pro estado original com Rafa/Manoel — nas
+  // outras unidades fica completamente vazio, já que cada uma só tem os
+  // professores que ela mesma cadastrar.
+  function resetarFiltrosProfessorPadrao(ehUnidadePadrao){
+    document.querySelectorAll('.teacher-filter').forEach(barra=>{
+      if(ehUnidadePadrao){
+        Array.from(barra.querySelectorAll('.filter-btn')).forEach(btn=>{
+          if(btn.dataset.filter !== 'rafa' && btn.dataset.filter !== 'manoel'){ btn.remove(); return; }
+          btn.textContent = btn.dataset.filter === 'rafa' ? 'Rafa' : 'Manoel';
+          btn.classList.remove('active');
+        });
+        const rafaBtn = barra.querySelector('[data-filter="rafa"]');
+        if(rafaBtn) rafaBtn.classList.add('active');
+      }else{
+        barra.innerHTML = '';
+      }
+    });
+    const toggle = document.querySelector('.transfer-professor-toggle');
+    if(toggle){
+      if(ehUnidadePadrao){
+        Array.from(toggle.querySelectorAll('.filter-btn')).forEach(btn=>{
+          if(btn.dataset.professor !== 'rafa' && btn.dataset.professor !== 'manoel'){ btn.remove(); return; }
+          btn.textContent = btn.dataset.professor === 'rafa' ? 'Rafa' : 'Manoel';
+          btn.classList.remove('active');
+        });
+        const rafaBtn = toggle.querySelector('[data-professor="rafa"]');
+        if(rafaBtn) rafaBtn.classList.add('active');
+      }else{
+        toggle.innerHTML = '';
+      }
+    }
+  }
+
+  // Monta os dados de uma unidade na tela: professores (extras, renomeados,
+  // excluídos) e depois os alunos (originais restaurados pelo snapshot +
+  // extras/removidos/renomeados/campos salvos).
+  function aplicarDadosDaUnidade(dadosUnidade){
+    professoresExtras = dadosUnidade.professoresExtras || [];
+    professoresRenomeados = dadosUnidade.professoresRenomeados || {};
+    professoresExcluidos = dadosUnidade.professoresExcluidos || [];
+    horariosTurma = dadosUnidade.horariosTurma || {};
+    presencas = dadosUnidade.presencas || {};
+    fotosAlunos = dadosUnidade.fotosAlunos || {};
+
+    renderizarTodosProfessoresExtras();
+    aplicarRenomeacoesProfessores();
+    aplicarExclusoesProfessores();
+
+    atribuirIdsOriginais();
+    extrasAlunos = dadosUnidade.extras || [];
+    alunosRemovidos = dadosUnidade.removidos || [];
+    alunosRenomeados = dadosUnidade.renomeados || {};
+    restaurarExtrasNaTela();
+    aplicarRenomeacoes();
+    aplicarRemocoes();
+    aplicarCampos(dadosUnidade.campos || {});
+
+    montarBotoesAdicionar();
+    montarBotoesAcao();
+    promoverNascimentoParaLinha();
+    montarBotoesMais();
+    montarBotoesFoto();
+    montarToolbarsTurma();
+    atualizarContadores();
+    aplicarFiltroInicial();
+    atualizarListaProfessoresConfig();
+  }
+
+  // Troca de unidade — só existe pro administrador (visualização). Cada
+  // unidade tem sua própria senha e seu próprio banco de dados; um login de
+  // unidade normal fica travado na unidade da senha dele, não troca.
+  function trocarUnidadeAdmin(novoId){
+    if(!novoId || sessao.role !== 'admin') return;
+    carregarUnidadeParaVisualizacao(novoId);
+  }
+
+  function montarSeletorUnidadesAdmin(){
+    const select = document.getElementById('unidadeSeletorAdmin');
+    if(!select) return;
+    select.innerHTML = unidades.map(u=>
+      '<option value="' + u.id + '"' + (u.id === unidadeAtivaId ? ' selected' : '') + '>' + escapeHtml(u.nome) + '</option>'
+    ).join('');
+  }
+
+  function atualizarListaProfessoresConfig(){
+    const ul = document.getElementById('professoresLista');
+    if(!ul) return;
+    const base = unidadeAtivaId === UNIDADE_PADRAO_ID
+      ? [
+          { id: 'rafa', nome: nomeExibicaoProfessor('rafa') },
+          { id: 'manoel', nome: nomeExibicaoProfessor('manoel') }
+        ]
+      : [];
+    const todos = [
+      ...base,
+      ...professoresExtras
+    ].filter(p => !professoresExcluidos.includes(p.id));
+    ul.innerHTML = todos.map(p =>
+      '<li class="professor-item">' + escapeHtml(p.nome) +
+        '<span class="item-btns">' +
+          '<button type="button" class="professor-edit-btn" onclick="renomearProfessor(\'' + p.id + '\')" title="Renomear professor">✏️</button>' +
+          '<button type="button" class="professor-remove-btn" onclick="excluirProfessor(\'' + p.id + '\')" title="Excluir professor">🗑️</button>' +
+        '</span></li>'
+    ).join('');
+  }
+
+  function adicionarProfessor(){
+    const input = document.getElementById('novoProfessorInput');
+    const nome = (input && input.value || '').trim();
+    if(!nome) return;
+    const prof = { id: 'prof' + Date.now().toString(36) + Math.floor(Math.random() * 1000), nome };
+    professoresExtras.push(prof);
+    renderizarProfessorExtra(prof, professoresExtras.length - 1);
+    atualizarListaProfessoresConfig();
+    montarBotoesAdicionar();
+    montarBotoesAcao();
+    promoverNascimentoParaLinha();
+    montarBotoesMais();
+    montarBotoesFoto();
+    montarToolbarsTurma();
+    atualizarContadores();
+    aplicarFiltroInicial();
+    atualizarAvisoSemProfessor();
+    input.value = '';
+    salvarLocalBackup();
+    salvarNoBancoDebounced();
+  }
+
+  function renomearProfessor(id){
+    const atual = nomeExibicaoProfessor(id);
+    const novo = window.prompt('Novo nome para "' + atual + '":', atual);
+    if(!novo || !novo.trim() || novo.trim() === atual) return;
+    const nomeFinal = novo.trim();
+    if(id === 'rafa' || id === 'manoel'){
+      professoresRenomeados[id] = nomeFinal;
+    }else{
+      const extra = professoresExtras.find(p=>p.id === id);
+      if(extra) extra.nome = nomeFinal;
+    }
+    aplicarNomeProfessorNaTela(id, nomeFinal);
+    atualizarListaProfessoresConfig();
+    salvarLocalBackup();
+    salvarNoBancoDebounced();
+  }
+
+  function excluirProfessor(id){
+    const temAlunos = document.querySelectorAll('.teacher-card.' + id + ' li.student-row').length > 0;
+    if(temAlunos){
+      window.alert('Esse professor ainda tem alunos em alguma turma. Transfira ou remova os alunos antes de excluir o professor.');
+      return;
+    }
+    const totalProfessoresAtivos = document.querySelectorAll('#master .teacher-card').length;
+    if(totalProfessoresAtivos <= 1){
+      window.alert('Não é possível excluir o último professor desta unidade.');
+      return;
+    }
+    const nome = nomeExibicaoProfessor(id);
+    const confirmou = window.confirm('Remover "' + nome + '" de todas as categorias desta unidade?');
+    if(!confirmou) return;
+
+    document.querySelectorAll('.teacher-card.' + id).forEach(el=>el.remove());
+    document.querySelectorAll('.teacher-filter [data-filter="' + id + '"]').forEach(el=>el.remove());
+    document.querySelectorAll('.transfer-professor-toggle [data-professor="' + id + '"]').forEach(el=>el.remove());
+
+    if(id === 'rafa' || id === 'manoel'){
+      if(!professoresExcluidos.includes(id)) professoresExcluidos.push(id);
+      delete professoresRenomeados[id];
+    }else{
+      professoresExtras = professoresExtras.filter(p=>p.id !== id);
+    }
+    atualizarListaProfessoresConfig();
+    atualizarContadores();
+    atualizarAvisoSemProfessor();
+    salvarLocalBackup();
+    salvarNoBancoDebounced();
+  }
+
+  function removerLigaDoCard(cardEl){
+    if(cardEl.closest('.category-section')?.id === 'master'){
+      cardEl.querySelectorAll('.liga-field').forEach(el=>el.remove());
+    }
+  }
+
+  function removerLigaDoMaster(){
+    document.querySelectorAll('#master .liga-field').forEach(el=>el.remove());
+  }
+
+  function adicionarAluno(cardEl, sectionId, professor){
+    const ul = cardEl.querySelector('ul.student-list');
+    const nome = (cardEl.querySelector('.novo-aluno-input').value || '').trim();
+    if(!nome){
+      cardEl.querySelector('.novo-aluno-input').focus();
+      return;
+    }
+    const uid = gerarIdNovoAluno();
+    const li = criarLiAluno(uid, nome);
+    inserirOrdenado(ul, li);
+    if(sectionId === 'master'){
+      li.querySelectorAll('.liga-field').forEach(el=>el.remove());
+    }
+    montarBotoesAcao();
+    promoverNascimentoParaLinha();
+    montarBotoesMais();
+    montarBotoesFoto();
+    extrasAlunos.push({ uid, sectionId, professor, nome });
+    salvarLocalBackup();
+    salvarNoBancoDebounced();
+    atualizarContadores();
+    esconderFormularioNovoAluno(cardEl);
+  }
+
+  function mostrarFormularioNovoAluno(cardEl){
+    cardEl.querySelector('.add-student-btn').style.display = 'none';
+    const form = cardEl.querySelector('.add-student-form');
+    form.style.display = 'flex';
+    const input = form.querySelector('.novo-aluno-input');
+    input.value = '';
+    input.focus();
+  }
+
+  function esconderFormularioNovoAluno(cardEl){
+    cardEl.querySelector('.add-student-form').style.display = 'none';
+    cardEl.querySelector('.add-student-btn').style.display = 'block';
+  }
+
+  function montarBotoesAdicionar(){
+    document.querySelectorAll('.teacher-card').forEach(cardEl=>{
+      if(cardEl.querySelector('.add-student-btn')) return; // já montado
+      const sectionId = cardEl.closest('.category-section').id;
+      const professor = Array.from(cardEl.classList).find(c => c !== 'teacher-card' && c !== 'hidden-by-filter') || 'rafa';
+
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'add-student-btn';
+      btn.textContent = '+ Adicionar aluno';
+      btn.onclick = ()=>mostrarFormularioNovoAluno(cardEl);
+
+      const form = document.createElement('div');
+      form.className = 'add-student-form';
+      form.style.display = 'none';
+      form.innerHTML =
+        '<input class="novo-aluno-input" type="text" placeholder="Nome do novo aluno"/>' +
+        '<button type="button" class="confirmar">Adicionar</button>' +
+        '<button type="button" class="cancelar">Cancelar</button>';
+      form.querySelector('.confirmar').onclick = ()=>adicionarAluno(cardEl, sectionId, professor);
+      form.querySelector('.novo-aluno-input').addEventListener('keydown', (ev)=>{
+        if(ev.key === 'Enter'){ ev.preventDefault(); adicionarAluno(cardEl, sectionId, professor); }
+      });
+      form.querySelector('.cancelar').onclick = ()=>esconderFormularioNovoAluno(cardEl);
+
+      cardEl.appendChild(btn);
+      cardEl.appendChild(form);
+    });
+  }
+
+  function restaurarExtrasNaTela(){
+    extrasAlunos.forEach(item=>{
+      if(alunosRemovidos.includes(item.uid)) return; // já foi excluído
+      const section = document.getElementById(item.sectionId);
+      if(!section) return;
+      const cardEl = section.querySelector('.teacher-card.' + item.professor);
+      if(!cardEl) return;
+      const ul = cardEl.querySelector('ul.student-list');
+      if(ul.querySelector('[data-id="' + item.uid + '"]')) return; // evita duplicar
+      const li = criarLiAluno(item.uid, item.nome);
+      if(item.sectionId === 'master'){
+        li.querySelectorAll('.liga-field').forEach(el=>el.remove());
+      }
+      ul.appendChild(li);
+    });
+  }
+
+  // ======================================================================
+  // NOVO: identificar cada aluno com um id único (para editar/excluir/sincronizar)
+  // ======================================================================
+  function atribuirIdsOriginais(){
+    document.querySelectorAll('li.student-row').forEach(li=>{
+      if(li.dataset.id) return; // já tem (alunos adicionados já vêm com id)
+      const sel = li.querySelector('.nivel-select');
+      if(sel && sel.id){
+        li.dataset.id = sel.id.replace('nivel-', '');
+      }
+    });
+  }
+
+  // ======================================================================
+  // NOVO: editar nome do aluno e excluir aluno da turma
+  // ======================================================================
+  function montarBotoesAcao(){
+    document.querySelectorAll('li.student-row').forEach(li=>{
+      if(li.querySelector('.student-actions')) return; // já montado
+      const main = li.querySelector('.student-main');
+      if(!main) return;
+      const acoes = document.createElement('div');
+      acoes.className = 'student-actions';
+      acoes.innerHTML =
+        '<button type="button" class="acao-btn transferir" title="Transferir de categoria/professor">🔄 Transferir</button>' +
+        '<button type="button" class="acao-btn editar" title="Editar nome">✏️ Editar nome</button>' +
+        '<button type="button" class="acao-btn excluir" title="Excluir aluno">🗑️ Excluir</button>';
+      // Esses botões vivem escondidos dentro da própria linha (CSS) até
+      // serem "emprestados" pro modal de detalhes — por isso, ao usá-los,
+      // primeiro fechamos esse modal (devolvendo os campos pro lugar) antes
+      // de abrir a próxima tela, senão o usuário edita/transfere sem ver o
+      // que está fazendo (o modal de detalhes ficaria por cima).
+      acoes.querySelector('.transferir').onclick = ()=>{ fecharModalDetalhesAluno(); abrirModalTransferir(li); };
+      acoes.querySelector('.editar').onclick = ()=>{ fecharModalDetalhesAluno(); editarNomeAluno(li); };
+      acoes.querySelector('.excluir').onclick = ()=>excluirAluno(li);
+      main.appendChild(acoes);
+    });
+  }
+
+  // ======================================================================
+  // NOVO: linha do aluno simplificada (nome, número, nascimento, nível e
+  // foto) + botão "⋯" que abre um modal com o resto (liga, eventos,
+  // transferir/editar/excluir) — pra não poluir a lista com muito campo
+  // junto. Os campos continuam sendo os MESMOS elementos (mesmos ids),
+  // só são reposicionados/emprestados — nada de duplicar estado.
+  // ======================================================================
+
+  // Idempotente: promove o campo "Nasc." de dentro do .student-extra pra
+  // dentro do .student-main (linha principal), uma única vez por aluno.
+  function promoverNascimentoParaLinha(){
+    document.querySelectorAll('li.student-row').forEach(li=>{
+      const main = li.querySelector('.student-main');
+      if(!main) return;
+      if(main.querySelector('.nasc-input')) return; // já promovido
+      const extra = li.querySelector('.student-extra');
+      if(!extra) return;
+      const nascInput = extra.querySelector('.nasc-input');
+      if(!nascInput) return;
+      const nascLabel = nascInput.closest('.extra-field');
+      if(!nascLabel) return;
+      nascLabel.classList.add('nasc-inline');
+      const nivelSelect = main.querySelector('.nivel-select');
+      if(nivelSelect){
+        main.insertBefore(nascLabel, nivelSelect);
+      }else{
+        main.appendChild(nascLabel);
+      }
+    });
+  }
+
+  // Idempotente: adiciona o botão "⋯" (mais informações) em cada linha.
+  function montarBotoesMais(){
+    document.querySelectorAll('li.student-row').forEach(li=>{
+      const main = li.querySelector('.student-main');
+      if(!main) return;
+      if(main.querySelector('.student-mais-btn')) return; // já montado
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'student-mais-btn';
+      btn.title = 'Mais informações do aluno';
+      btn.textContent = '⋯';
+      btn.onclick = ()=>abrirModalDetalhesAluno(li);
+      main.appendChild(btn);
+    });
+  }
+
+  // Aluno cujo .student-extra/.student-actions estão emprestados pro modal
+  // de detalhes aberto no momento (null se o modal estiver fechado).
+  let detalhesAlunoAtualLi = null;
+
+  function abrirModalDetalhesAluno(li){
+    fecharModalDetalhesAluno(); // garante que nenhum outro aluno ficou "emprestado"
+    detalhesAlunoAtualLi = li;
+    const nome = li.querySelector('.student-name')?.textContent.trim() || '';
+    document.getElementById('detalhesAlunoNome').textContent = nome;
+    const corpo = document.getElementById('detalhesAlunoCorpo');
+    const extra = li.querySelector('.student-extra');
+    const acoes = li.querySelector('.student-actions');
+    if(extra) corpo.appendChild(extra);
+    if(acoes) corpo.appendChild(acoes);
+    document.getElementById('modalDetalhesAluno').style.display = 'flex';
+  }
+
+  function fecharModalDetalhesAluno(){
+    const modal = document.getElementById('modalDetalhesAluno');
+    if(modal) modal.style.display = 'none';
+    if(detalhesAlunoAtualLi){
+      const li = detalhesAlunoAtualLi;
+      const corpo = document.getElementById('detalhesAlunoCorpo');
+      const extra = corpo.querySelector('.student-extra');
+      const acoes = corpo.querySelector('.student-actions');
+      const main = li.querySelector('.student-main');
+      if(extra) li.appendChild(extra); // volta como filho direto do li (posição original)
+      if(acoes && main) main.appendChild(acoes); // volta como filho do student-main
+      detalhesAlunoAtualLi = null;
+    }
+  }
+
+  function editarNomeAluno(li){
+    const span = li.querySelector('.student-name');
+    if(!span) return;
+    const atual = span.textContent.trim();
+    const input = document.createElement('input');
+    input.type = 'text';
+    input.className = 'nome-edit-input';
+    input.value = atual;
+    span.replaceWith(input);
+    input.focus();
+    input.select();
+
+    let jaSalvou = false;
+    function salvar(){
+      if(jaSalvou) return;
+      jaSalvou = true;
+      const novo = input.value.trim() || atual;
+      const novoSpan = document.createElement('span');
+      novoSpan.className = 'student-name';
+      novoSpan.textContent = novo;
+      input.replaceWith(novoSpan);
+      if(novo !== atual){
+        registrarRenomeacao(li.dataset.id, novo);
+        ordenarListas();
+        atualizarContadores();
+        salvarNoBancoDebounced();
+      }
+    }
+    input.addEventListener('blur', salvar);
+    input.addEventListener('keydown', ev=>{
+      if(ev.key === 'Enter'){ ev.preventDefault(); input.blur(); }
+      if(ev.key === 'Escape'){ input.value = atual; input.blur(); }
+    });
+  }
+
+  function registrarRenomeacao(id, novoNome){
+    if(!id) return;
+    const extra = extrasAlunos.find(e=>e.uid === id);
+    if(extra){
+      extra.nome = novoNome;
+    }else{
+      alunosRenomeados[id] = novoNome;
+    }
+    salvarLocalBackup();
+  }
+
+  function excluirAluno(li){
+    const nome = li.querySelector('.student-name')?.textContent.trim() || 'este aluno';
+    const confirmou = window.confirm('Remover "' + nome + '" da turma? Essa ação também será sincronizada nos outros aparelhos.');
+    if(!confirmou) return;
+    const id = li.dataset.id;
+    if(id && !alunosRemovidos.includes(id)) alunosRemovidos.push(id);
+    if(id){
+      extrasAlunos = extrasAlunos.filter(e=>e.uid !== id);
+      delete alunosRenomeados[id];
+      delete fotosAlunos[id];
+    }
+    li.remove();
+    fecharModalDetalhesAluno(); // o aluno não existe mais — fecha o modal de detalhes
+    salvarLocalBackup();
+    atualizarContadores();
+    salvarNoBancoDebounced();
+  }
+
+  // ======================================================================
+  // Foto do aluno (exclusivo do app instalado — PWA)
+  // ======================================================================
+
+  // Injeta (de forma idempotente) o avatar/botão de foto em cada linha de
+  // aluno — mesmo padrão do montarBotoesAcao/montarToolbarsTurma. Roda de
+  // novo sempre que algo muda (foto salva, removida, aluno transferido
+  // etc.) pra manter a tela e o modo PWA/navegador em dia.
+  function montarBotoesFoto(){
+    const pwa = ehPWAInstalado();
+    document.querySelectorAll('li.student-row').forEach(li=>{
+      let foto = li.querySelector('.student-foto');
+      if(!foto){
+        foto = document.createElement('button');
+        foto.type = 'button';
+        foto.className = 'student-foto';
+        const main = li.querySelector('.student-main');
+        if(!main) return;
+        main.insertBefore(foto, main.firstChild);
+      }
+      const id = li.dataset.id;
+      const temFoto = !!(id && fotosAlunos[id]);
+      const podeEditar = pwa && sessao.role === 'unidade';
+      foto.title = podeEditar ? (temFoto ? 'Ver/trocar foto' : 'Adicionar foto') : 'Foto do aluno';
+      foto.classList.toggle('clicavel', podeEditar);
+      foto.classList.toggle('sem-foto', !temFoto);
+      foto.onclick = podeEditar ? (()=>abrirModalFoto(id)) : null;
+      foto.style.backgroundImage = temFoto ? ('url("' + fotosAlunos[id] + '")') : '';
+      // A foto (ou o espaço reservado pra ela) aparece tanto no app
+      // instalado quanto no navegador comum — só quem está com o app
+      // instalado consegue tirar/trocar a foto (ver "clicavel" acima).
+      foto.style.display = 'flex';
+    });
+  }
+
+  function abrirModalFoto(studentId){
+    if(!ehPWAInstalado() || sessao.role !== 'unidade' || !studentId) return;
+    alunoAtualFoto = studentId;
+    const li = document.querySelector('li.student-row[data-id="' + studentId + '"]');
+    const nome = li ? (li.querySelector('.student-name')?.textContent.trim() || '') : '';
+    document.getElementById('fotoAlunoNome').textContent = nome;
+    document.getElementById('fotoStatusMsg').textContent = '';
+    atualizarPreviewModalFoto();
+    document.getElementById('modalFoto').style.display = 'flex';
+  }
+
+  function fecharModalFoto(){
+    document.getElementById('modalFoto').style.display = 'none';
+    alunoAtualFoto = null;
+    document.getElementById('fotoInputCamera').value = '';
+    document.getElementById('fotoInputGaleria').value = '';
+  }
+
+  function atualizarPreviewModalFoto(){
+    const img = document.getElementById('fotoPreviewImg');
+    const vazio = document.getElementById('fotoPreviewVazio');
+    const removerBtn = document.getElementById('fotoRemoverBtn');
+    const url = alunoAtualFoto ? fotosAlunos[alunoAtualFoto] : null;
+    if(url){
+      img.src = url;
+      img.style.display = 'block';
+      vazio.style.display = 'none';
+      removerBtn.style.display = 'inline-block';
+    }else{
+      img.style.display = 'none';
+      vazio.style.display = 'flex';
+      removerBtn.style.display = 'none';
+    }
+  }
+
+  // Redimensiona (maior lado até FOTO_MAX_LADO) e recomprime (JPEG,
+  // FOTO_QUALIDADE) a foto escolhida/tirada antes de guardar — fotos de
+  // celular costumam vir com vários MB, e como tudo aqui sincroniza no
+  // mesmo banco pequeno das outras unidades (jsonblob), é essencial manter
+  // cada foto bem leve pra não travar nem estourar o banco de ninguém.
+  function processarFotoSelecionada(file){
+    if(!file || !alunoAtualFoto) return;
+    const statusEl = document.getElementById('fotoStatusMsg');
+    statusEl.textContent = '⏳ Processando foto...';
+    const leitor = new FileReader();
+    leitor.onload = function(ev){
+      const img = new Image();
+      img.onload = function(){
+        const canvas = document.createElement('canvas');
+        let largura = img.width, altura = img.height;
+        const maior = Math.max(largura, altura);
+        if(maior > FOTO_MAX_LADO){
+          const escala = FOTO_MAX_LADO / maior;
+          largura = Math.round(largura * escala);
+          altura = Math.round(altura * escala);
+        }
+        canvas.width = largura;
+        canvas.height = altura;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0, largura, altura);
+        const dataUrl = canvas.toDataURL('image/jpeg', FOTO_QUALIDADE);
+        if(dataUrl.length > FOTO_TAMANHO_MAX_B64){
+          statusEl.textContent = '⚠️ Essa foto ficou grande demais mesmo reduzida. Tente outra foto (mais simples).';
+          return;
+        }
+        fotosAlunos[alunoAtualFoto] = dataUrl;
+        atualizarPreviewModalFoto();
+        montarBotoesFoto();
+        statusEl.textContent = '✅ Foto salva.';
+        salvarLocalBackup();
+        // Foto é uma ação deliberada e pouco frequente (ao contrário de
+        // digitar, que dispara o debounce várias vezes por segundo) — salva
+        // no banco na hora em vez de esperar 900ms, pra reduzir ao mínimo a
+        // janela em que a foto ainda não chegou no banco compartilhado caso
+        // o app seja fechado logo em seguida.
+        clearTimeout(salvarTimeout);
+        salvarTimeout = null;
+        salvarNoBancoAgora();
+      };
+      img.onerror = function(){
+        statusEl.textContent = '⚠️ Não foi possível abrir essa imagem. Tente outra.';
+      };
+      img.src = ev.target.result;
+    };
+    leitor.onerror = function(){
+      statusEl.textContent = '⚠️ Não foi possível ler o arquivo.';
+    };
+    leitor.readAsDataURL(file);
+  }
+
+  function removerFotoAluno(){
+    if(!alunoAtualFoto || sessao.role !== 'unidade') return;
+    delete fotosAlunos[alunoAtualFoto];
+    atualizarPreviewModalFoto();
+    montarBotoesFoto();
+    document.getElementById('fotoStatusMsg').textContent = '';
+    salvarLocalBackup();
+    clearTimeout(salvarTimeout);
+    salvarTimeout = null;
+    salvarNoBancoAgora();
+  }
+
+  // ======================================================================
+  // NOVO: transferir aluno de categoria e/ou de professor
+  // ======================================================================
+  let liEmTransferencia = null;
+  let professorSelecionadoTransferencia = 'rafa';
+
+  function abrirModalTransferir(li){
+    // Garante que .student-extra (liga/eventos) já esteja de volta dentro
+    // do li antes de ler os campos na hora de confirmar a transferência.
+    fecharModalDetalhesAluno();
+    liEmTransferencia = li;
+    const nome = li.querySelector('.student-name')?.textContent.trim() || 'este aluno';
+    document.getElementById('transferAlunoNome').textContent = nome;
+
+    const sectionAtual = li.closest('.category-section');
+    const cardAtual = li.closest('.teacher-card');
+    const categoriaAtual = sectionAtual ? sectionAtual.id : 'master';
+    professorSelecionadoTransferencia = (cardAtual ? Array.from(cardAtual.classList).find(c => c !== 'teacher-card' && c !== 'hidden-by-filter') : null) || 'rafa';
+
+    const select = document.getElementById('transferCategoriaSelect');
+    select.value = categoriaAtual;
+
+    document.querySelectorAll('.transfer-professor-toggle .filter-btn').forEach(btn=>{
+      btn.classList.toggle('active', btn.dataset.professor === professorSelecionadoTransferencia);
+    });
+
+    const modal = document.getElementById('modalTransferir');
+    if(modal) modal.style.display = 'flex';
+  }
+
+  function fecharModalTransferir(){
+    const modal = document.getElementById('modalTransferir');
+    if(modal) modal.style.display = 'none';
+    liEmTransferencia = null;
+  }
+
+  function selecionarProfessorTransferencia(professor, btnEl){
+    professorSelecionadoTransferencia = professor;
+    document.querySelectorAll('.transfer-professor-toggle .filter-btn').forEach(btn=>{
+      btn.classList.toggle('active', btn === btnEl);
+    });
+  }
+
+  function confirmarTransferencia(){
+    if(!liEmTransferencia) return;
+    const li = liEmTransferencia;
+    const novaCategoria = document.getElementById('transferCategoriaSelect').value;
+    const novoProfessor = professorSelecionadoTransferencia;
+
+    const sectionAtual = li.closest('.category-section');
+    const cardAtual = li.closest('.teacher-card');
+    const categoriaAtual = sectionAtual ? sectionAtual.id : null;
+    const professorAtual = (cardAtual ? Array.from(cardAtual.classList).find(c => c !== 'teacher-card' && c !== 'hidden-by-filter') : null) || 'rafa';
+
+    if(categoriaAtual === novaCategoria && professorAtual === novoProfessor){
+      fecharModalTransferir();
+      return;
+    }
+
+    const novaSection = document.getElementById(novaCategoria);
+    const novoCard = novaSection ? novaSection.querySelector('.teacher-card.' + novoProfessor) : null;
+    if(!novoCard){
+      fecharModalTransferir();
+      return;
+    }
+
+    // Coleta os dados atuais do aluno antes de recriar a linha no destino
+    const nome = li.querySelector('.student-name')?.textContent.trim() || '';
+    const idAntigo = li.dataset.id;
+    const nivelEl = li.querySelector('.nivel-select');
+    const nascEl = li.querySelector('.nasc-input');
+    const ligaEl = li.querySelector('.liga-check');
+    const eventosEl = li.querySelector('.eventos-input');
+    const camisaEl = li.querySelector('.camisa-input');
+    const dados = {
+      nivel: nivelEl ? nivelEl.value : '',
+      nasc: nascEl ? nascEl.value : '',
+      liga: ligaEl ? ligaEl.checked : false,
+      eventos: eventosEl ? eventosEl.value : '',
+      camisa: camisaEl ? camisaEl.value : ''
+    };
+
+    // Remove o aluno do lugar atual (mesmo mecanismo do excluir)
+    if(idAntigo && !alunosRemovidos.includes(idAntigo)) alunosRemovidos.push(idAntigo);
+    if(idAntigo){
+      extrasAlunos = extrasAlunos.filter(e=>e.uid !== idAntigo);
+      delete alunosRenomeados[idAntigo];
+    }
+    li.remove();
+
+    // Cria o aluno no novo destino com um novo id, preservando os dados
+    const novoId = gerarIdNovoAluno();
+    if(idAntigo && presencas[idAntigo]){
+      presencas[novoId] = Object.assign({}, presencas[idAntigo]);
+      delete presencas[idAntigo];
+    }
+    if(idAntigo && fotosAlunos[idAntigo]){
+      fotosAlunos[novoId] = fotosAlunos[idAntigo];
+      delete fotosAlunos[idAntigo];
+    }
+    const novoUl = novoCard.querySelector('ul.student-list');
+    const novoLi = criarLiAluno(novoId, nome);
+    inserirOrdenado(novoUl, novoLi);
+    if(novaCategoria === 'master'){
+      novoLi.querySelectorAll('.liga-field').forEach(el=>el.remove());
+    }
+    montarBotoesAcao();
+    promoverNascimentoParaLinha();
+    montarBotoesMais();
+    montarBotoesFoto();
+
+    const novoNivelEl = novoLi.querySelector('.nivel-select');
+    if(novoNivelEl) novoNivelEl.value = dados.nivel;
+    const novoNascEl = novoLi.querySelector('.nasc-input');
+    if(novoNascEl) novoNascEl.value = dados.nasc;
+    const novoLigaEl = novoLi.querySelector('.liga-check');
+    if(novoLigaEl) novoLigaEl.checked = dados.liga;
+    const novoEventosEl = novoLi.querySelector('.eventos-input');
+    if(novoEventosEl) novoEventosEl.value = dados.eventos;
+    const novoCamisaEl = novoLi.querySelector('.camisa-input');
+    if(novoCamisaEl) novoCamisaEl.value = dados.camisa;
+
+    extrasAlunos.push({ uid: novoId, sectionId: novaCategoria, professor: novoProfessor, nome });
+
+    fecharModalTransferir();
+    salvarLocalBackup();
+    atualizarContadores();
+    salvarNoBancoDebounced();
+  }
+
+  function aplicarRenomeacoes(){
+    Object.keys(alunosRenomeados).forEach(id=>{
+      const li = document.querySelector('li.student-row[data-id="' + id + '"]');
+      if(li){
+        const span = li.querySelector('.student-name');
+        if(span) span.textContent = alunosRenomeados[id];
+      }
+    });
+  }
+
+  function aplicarRemocoes(){
+    alunosRemovidos.forEach(id=>{
+      const li = document.querySelector('li.student-row[data-id="' + id + '"]');
+      if(li) li.remove();
+    });
+  }
+
+  // ======================================================================
+  // Banco de dados: cada unidade tem seu PRÓPRIO banco (usando
+  // jsonblob.com), separado das outras. Existe um "banco-índice" (endereço
+  // fixo, DEFAULT_SYNC_ID) que só guarda a lista de unidades/senhas e o
+  // endereço do banco de cada uma — é criado automaticamente na primeira
+  // vez que uma unidade salva algum dado, e depois fica gravado ali.
+  // ======================================================================
+  const BACKUP_KEY = 'aubrick_backup_local';
+  const DEFAULT_SYNC_ID = '019ff294-1605-7b93-b2d3-a71ba4167b37';
+
+  function blobUrl(id){
+    return 'https://jsonblob.com/api/jsonBlob/' + id;
+  }
+
+  function coletarCampos(){
+    const campos = {};
+    document.querySelectorAll('.nivel-select').forEach(el=>{ if(el.value) campos[el.id] = el.value; });
+    // camisa-input (número da camisa) precisa estar aqui — sem isso o
+    // número fica só salvo no localStorage deste aparelho e nunca chega
+    // ao banco compartilhado da unidade (bug encontrado em 06/08/2026).
+    document.querySelectorAll('.nasc-input, .eventos-input, .camisa-input').forEach(el=>{ if(el.value) campos[el.id] = el.value; });
+    document.querySelectorAll('.liga-check').forEach(el=>{ if(el.checked) campos[el.id] = '1'; });
+    return campos;
+  }
+
+  function aplicarCampos(campos){
+    Object.keys(campos || {}).forEach(id=>{
+      const el = document.getElementById(id);
+      if(!el) return;
+      if(el.type === 'checkbox'){ el.checked = campos[id] === '1'; }
+      else if(el.type === 'date'){ el.value = paraDataISO(campos[id]); }
+      else{ el.value = campos[id]; }
+    });
+  }
+
+  // Guarda uma cópia local (neste aparelho) dos dados de CADA unidade que
+  // já foi vista por aqui — só usada como fallback se o banco da unidade
+  // não puder ser alcançado no momento.
+  function lerBackupLocalCompleto(){
+    try{
+      const salvo = localStorage.getItem(BACKUP_KEY);
+      if(salvo) return JSON.parse(salvo) || {};
+    }catch(e){}
+    return {};
+  }
+
+  function salvarLocalBackup(){
+    if(sessao.role !== 'unidade') return; // administrador nunca grava nada
+    try{
+      const todos = lerBackupLocalCompleto();
+      todos[unidadeAtivaId] = capturarDadosUnidadeAtual();
+      localStorage.setItem(BACKUP_KEY, JSON.stringify(todos));
+    }catch(e){}
+  }
+
+  // Junta a lista oficial de unidades com o que veio do banco-índice —
+  // adiciona unidades oficiais que ainda não existem lá (ex.: logo depois
+  // deste update) e completa a senha de quem ainda não tinha, sem nunca
+  // mexer no blobId (endereço do banco) de quem já tem.
+  function reconciliarUnidadesOficiais(listaCarregada){
+    const lista = (listaCarregada && listaCarregada.length) ? listaCarregada : [];
+    let mudou = !listaCarregada || !listaCarregada.length;
+    UNIDADES_OFICIAIS.forEach(oficial=>{
+      let u = lista.find(x=>x.id === oficial.id);
+      if(!u){
+        u = { id: oficial.id, nome: oficial.nome, senha: oficial.senha, blobId: null };
+        lista.push(u);
+        mudou = true;
+      }else{
+        if(!u.senha){ u.senha = oficial.senha; mudou = true; }
+        if(!u.nome){ u.nome = oficial.nome; mudou = true; }
+      }
+    });
+    return { lista, mudou };
+  }
+
+  // Lê o formato do que veio do banco-índice — pode ser: (a) o formato novo
+  // (lista de unidades com blobId), (b) o formato multi-unidade anterior
+  // (dados de cada unidade embutidos ali mesmo, em "dadosPorUnidade") ou
+  // (c) o formato bem antigo (uma unidade só, campos direto na raiz).
+  // Em qualquer caso, nenhum dado real é perdido — só migrado.
+  function normalizarIndiceCarregado(dados){
+    let legado = {};
+    let listaCarregada = null;
+    if(dados && dados.unidades && dados.unidades.length && dados.unidades[0].blobId !== undefined){
+      listaCarregada = dados.unidades;
+    }else if(dados && dados.unidades && dados.unidades.length){
+      listaCarregada = dados.unidades.map(u=>({ id:u.id, nome:u.nome, senha:null, blobId:null }));
+      legado = dados.dadosPorUnidade || {};
+    }else if(dados && (dados.campos || dados.extras || dados.professoresExtras)){
+      listaCarregada = null;
+      legado[UNIDADE_PADRAO_ID] = {
+        campos: dados.campos || {}, extras: dados.extras || [], removidos: dados.removidos || [],
+        renomeados: dados.renomeados || {}, professoresExtras: dados.professoresExtras || [],
+        professoresRenomeados: {}, professoresExcluidos: []
+      };
+    }
+    const { lista } = reconciliarUnidadesOficiais(listaCarregada);
+    return { unidades: lista, legado };
+  }
+
+  // Busca os dados de UMA unidade: se ela já tem banco próprio (blobId),
+  // busca nele; senão usa os dados legados (se essa unidade já tinha dados
+  // no formato antigo) ou começa em branco.
+  function carregarDadosDaUnidade(unidadeInfo, legado){
+    if(unidadeInfo && unidadeInfo.blobId){
+      return fetch(blobUrl(unidadeInfo.blobId)).then(r=>{
+        if(!r.ok) throw new Error('banco da unidade não encontrado');
+        return r.json();
+      }).catch(err=>{
+        console.error('Erro ao carregar banco da unidade:', err);
+        return (legado && legado[unidadeInfo.id]) || dadosPadraoUnidade();
+      });
+    }
+    if(legado && legado[unidadeInfo.id]) return Promise.resolve(legado[unidadeInfo.id]);
+    return Promise.resolve(dadosPadraoUnidade());
+  }
+
+  // Mostra na tela os dados de uma unidade (professores, alunos, campos).
+  // Usado tanto no login normal (fica travado nessa unidade) quanto no
+  // administrador trocando de unidade no seletor (sempre somente leitura).
+  function carregarUnidadeParaVisualizacao(id){
+    const unidadeInfo = unidades.find(u=>u.id === id);
+    if(!unidadeInfo){
+      document.getElementById('syncStatus').textContent = '⚠️ Unidade não encontrada.';
+      return;
+    }
+    document.getElementById('syncStatus').textContent = '⏳ Carregando turmas de ' + unidadeInfo.nome + '…';
+    const ehUnidadePadrao = unidadeInfo.id === UNIDADE_PADRAO_ID;
+    resetarFiltrosProfessorPadrao(ehUnidadePadrao);
+    unidadeAtivaId = unidadeInfo.id;
+    unidadeAtual = unidadeInfo.nome;
+    atualizarUnidadeNaTela();
+    renderizarGridsParaUnidade(unidadeAtivaId);
+    carregarDadosDaUnidade(unidadeInfo, dadosLegadoPorUnidade).then(dadosUnidade=>{
+      aplicarDadosDaUnidade(dadosUnidade || dadosPadraoUnidade());
+      montarSeletorUnidadesAdmin();
+      atualizarAvisoSemProfessor();
+      document.getElementById('syncStatus').textContent = sessao.role === 'admin'
+        ? '👁️ Modo administrador — somente visualização, nada aqui é salvo'
+        : '✅ Sincronizado com o banco desta unidade';
+      inicializarApp();
+    });
+  }
+
+  let salvarTimeout = null;
+  function salvarNoBancoDebounced(){
+    if(sessao.role !== 'unidade') return; // administrador nunca grava nada
+    document.getElementById('syncStatus').textContent = '💾 Salvando…';
+    clearTimeout(salvarTimeout);
+    salvarTimeout = setTimeout(salvarNoBancoAgora, 900);
+  }
+
+  // Garante que uma alteração recém-feita (ex.: tirar uma foto e fechar o
+  // app/aba logo em seguida) não fique só "agendada" e se perca — se o app
+  // for pra segundo plano ou for fechado antes dos 900ms do debounce acima
+  // terminarem, salva na hora em vez de esperar. Isso é especialmente
+  // importante no PWA: quando o app é fechado (ex.: deslizado pra fora),
+  // o JavaScript para de rodar imediatamente e o setTimeout pendente nunca
+  // dispara, então a última alteração nunca chegava a ser salva no banco
+  // compartilhado (ficava só localmente naquele aparelho).
+  function flusharSalvamentoPendente(){
+    if(salvarTimeout){
+      clearTimeout(salvarTimeout);
+      salvarTimeout = null;
+      salvarNoBancoAgora();
+    }
+  }
+  document.addEventListener('visibilitychange', function(){
+    if(document.visibilityState === 'hidden') flusharSalvamentoPendente();
+  });
+  window.addEventListener('pagehide', flusharSalvamentoPendente);
+
+  function salvarNoBancoAgora(){
+    if(sessao.role !== 'unidade') return; // administrador nunca grava nada
+    const unidadeInfo = unidades.find(u=>u.id === unidadeAtivaId);
+    if(!unidadeInfo) return;
+    const dados = capturarDadosUnidadeAtual();
+    dados.atualizadoEm = new Date().toISOString();
+    salvarLocalBackup();
+
+    if(unidadeInfo.blobId){
+      fetch(blobUrl(unidadeInfo.blobId), {
+        method: 'PUT',
+        headers: {'Content-Type':'application/json'},
+        body: JSON.stringify(dados)
+      }).then(r=>{
+        if(!r.ok) throw new Error('erro ao salvar');
+        document.getElementById('syncStatus').textContent = '✅ Dados salvos no banco desta unidade';
+      }).catch(err=>{
+        console.error('Erro ao salvar no banco da unidade:', err);
+        document.getElementById('syncStatus').textContent = '⚠️ Não foi possível salvar agora — vai tentar de novo na próxima alteração.';
+      });
+      return;
+    }
+
+    // Primeira vez que esta unidade salva alguma coisa: cria o banco
+    // próprio dela e grava o endereço no banco-índice, pra próxima vez
+    // (e pros outros aparelhos dessa unidade) já saberem onde ele está.
+    fetch('https://jsonblob.com/api/jsonBlob', {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify(dados)
+    }).then(r=>{
+      const loc = r.headers.get('Location') || r.headers.get('location');
+      if(!loc) throw new Error('sem endereço do banco criado');
+      unidadeInfo.blobId = loc.split('/').pop();
+      return fetch(blobUrl(DEFAULT_SYNC_ID), {
+        method: 'PUT',
+        headers: {'Content-Type':'application/json'},
+        body: JSON.stringify({ unidades: unidades, atualizadoEm: new Date().toISOString() })
+      });
+    }).then(r=>{
+      if(r && !r.ok) throw new Error('erro ao salvar índice de unidades');
+      document.getElementById('syncStatus').textContent = '✅ Banco de dados desta unidade criado e sincronizado';
+    }).catch(err=>{
+      console.error('Erro ao criar banco da unidade:', err);
+      document.getElementById('syncStatus').textContent = '⚠️ Não foi possível criar/salvar o banco desta unidade agora — vai tentar de novo na próxima alteração.';
+    });
+  }
+
+  function iniciarBancoDeDados(){
+    document.getElementById('syncStatus').textContent = '⏳ Carregando lista de unidades…';
+    fetch(blobUrl(DEFAULT_SYNC_ID)).then(r=>{
+      if(!r.ok) throw new Error('índice de unidades não encontrado');
+      return r.json();
+    }).then(dados=>{
+      const resultado = normalizarIndiceCarregado(dados || {});
+      unidades = resultado.unidades;
+      dadosLegadoPorUnidade = resultado.legado;
+      prosseguirAposCarregarIndice();
+    }).catch(err=>{
+      console.error('Erro ao carregar índice de unidades:', err);
+      document.getElementById('syncStatus').textContent = '⚠️ Não foi possível carregar a lista de unidades agora — usando a última cópia salva neste aparelho.';
+      const resultado = normalizarIndiceCarregado({});
+      unidades = resultado.unidades;
+      dadosLegadoPorUnidade = lerBackupLocalCompleto();
+      prosseguirAposCarregarIndice();
+    });
+  }
+
+  function prosseguirAposCarregarIndice(){
+    if(sessao.role === 'unidade'){
+      carregarUnidadeParaVisualizacao(sessao.unidadeId);
+    }else{
+      montarSeletorUnidadesAdmin();
+      const primeira = unidades[0];
+      if(primeira) carregarUnidadeParaVisualizacao(primeira.id);
+    }
+  }
+
+  // ======================================================================
+  // Inicialização geral da tela (chamado depois de carregar o banco)
+  // ======================================================================
+  let appInicializado = false;
+  function inicializarApp(){
+    atribuirIdsOriginais();
+    removerLigaDoMaster();
+    loadNiveis();
+    loadCampos();
+    ordenarListas();
+    montarBotoesAdicionar();
+    montarBotoesAcao();
+    promoverNascimentoParaLinha();
+    montarBotoesMais();
+    montarBotoesFoto();
+    atualizarContadores();
+    aplicarFiltroInicial();
+    appInicializado = true;
+  }
+
+  // ---- Verifica a senha compartilhada (ou libera direto se já validada antes) ----
+  verificarAcessoAoCarregar();
+
+  // ======================================================================
+  // NOVO: PWA — registra o service worker (uso offline) e o botão "Instalar app"
+  // ======================================================================
+  if('serviceWorker' in navigator){
+    window.addEventListener('load', ()=>{
+      navigator.serviceWorker.register('service-worker.js').catch(err=>{
+        console.error('Erro ao registrar service worker:', err);
+      });
+    });
+  }
+
+  let promptInstalacao = null;
+  const ehIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+  const jaInstalado = window.navigator.standalone === true ||
+    (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches);
+
+  window.addEventListener('beforeinstallprompt', (ev)=>{
+    ev.preventDefault();
+    promptInstalacao = ev;
+    const btn = document.getElementById('btnInstalarApp');
+    if(btn) btn.style.display = 'inline-block';
+  });
+
+  // No iPhone/iPad o Safari não dispara "beforeinstallprompt" — mostramos
+  // o botão do mesmo jeito e, ao tocar, explicamos o passo a passo manual.
+  if(ehIOS && !jaInstalado){
+    const btn = document.getElementById('btnInstalarApp');
+    if(btn) btn.style.display = 'inline-block';
+  }
+
+  function instalarApp(){
+    if(ehIOS){
+      mostrarInstrucoesIOS();
+      return;
+    }
+    if(!promptInstalacao) return;
+    promptInstalacao.prompt();
+    promptInstalacao.userChoice.finally(()=>{
+      promptInstalacao = null;
+      const btn = document.getElementById('btnInstalarApp');
+      if(btn) btn.style.display = 'none';
+    });
+  }
+
+  function mostrarInstrucoesIOS(){
+    if(document.getElementById('instrucoesIOS')) return;
+    const overlay = document.createElement('div');
+    overlay.id = 'instrucoesIOS';
+    overlay.style.cssText = 'position:fixed;inset:0;background:rgba(13,20,40,0.55);z-index:1000;display:flex;align-items:center;justify-content:center;padding:20px;';
+    overlay.innerHTML =
+      '<div style="background:white;border-radius:16px;padding:26px 22px;max-width:340px;text-align:center;box-shadow:0 10px 40px rgba(0,0,0,0.3);">' +
+        '<div style="font-size:2.2em;margin-bottom:8px;">📲</div>' +
+        '<h3 style="margin:0 0 12px;color:#0d3b8c;">Instalar o app no iPhone</h3>' +
+        '<p style="text-align:left;font-size:0.95em;color:#3a3f55;line-height:1.5;margin:0 0 8px;">1. Toque no ícone <b>Compartilhar</b> (□ com uma seta ↑) na barra do Safari.</p>' +
+        '<p style="text-align:left;font-size:0.95em;color:#3a3f55;line-height:1.5;margin:0 0 8px;">2. Role e toque em <b>"Adicionar à Tela de Início"</b>.</p>' +
+        '<p style="text-align:left;font-size:0.95em;color:#3a3f55;line-height:1.5;margin:0 0 18px;">3. Toque em <b>"Adicionar"</b> — pronto, o ícone do Aubrick fica na sua tela.</p>' +
+        '<button type="button" style="background:#1e5fd9;color:white;border:none;padding:10px 24px;border-radius:24px;font-weight:700;cursor:pointer;">Entendi</button>' +
+      '</div>';
+    overlay.querySelector('button').onclick = ()=>overlay.remove();
+    overlay.addEventListener('click', (ev)=>{ if(ev.target === overlay) overlay.remove(); });
+    document.body.appendChild(overlay);
+  }
+
+  window.addEventListener('appinstalled', ()=>{
+    const btn = document.getElementById('btnInstalarApp');
+    if(btn) btn.style.display = 'none';
+  });
+
+  // ---- Lê o valor do nível, seja em caixinha editável (select) ou somente leitura (span) ----
+  function nivelValue(el){
+    if(!el) return '';
+    if(el.tagName === 'SELECT') return el.value;
+    const t = el.textContent.trim();
+    return t === '–' ? '' : t;
+  }
+
+  // ---- Exportar níveis (com nome do aluno, categoria e professor) para .json ----
+  function exportarNiveis(){
+    const dados = [];
+    document.querySelectorAll('.category-section').forEach(sectionEl=>{
+      const categoria = sectionEl.querySelector('.cat-title span')?.textContent.trim() || '';
+      sectionEl.querySelectorAll('.teacher-card').forEach(cardEl=>{
+        const professor = cardEl.querySelector('.teacher-header h3')?.textContent.trim() || '';
+        cardEl.querySelectorAll('ul.student-list > li').forEach(li=>{
+          const liClone = li.cloneNode(true);
+          const nivelClone = liClone.querySelector('.nivel-select, .nivel-readonly');
+          if(nivelClone) nivelClone.remove();
+          const aluno = liClone.textContent.replace(/\s+/g,' ').trim();
+          const nivelEl = li.querySelector('.nivel-select, .nivel-readonly');
+          const nivel = nivelValue(nivelEl);
+          dados.push({ categoria, professor, aluno, nivel });
+        });
+      });
+    });
+    const blob = new Blob([JSON.stringify(dados, null, 2)], {type:'application/json'});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'aubrick_niveis.json';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  }
+
+  // ---- Exportar níveis como planilha (.csv), com nome do aluno, categoria e professor ----
+  function exportarNiveisCSV(){
+    const linhas = [['Categoria','Professor','Aluno','Nivel']];
+    document.querySelectorAll('.category-section').forEach(sectionEl=>{
+      const categoria = sectionEl.querySelector('.cat-title span')?.textContent.trim() || '';
+      sectionEl.querySelectorAll('.teacher-card').forEach(cardEl=>{
+        const professor = cardEl.querySelector('.teacher-header h3')?.textContent.trim() || '';
+        cardEl.querySelectorAll('ul.student-list > li').forEach(li=>{
+          const liClone = li.cloneNode(true);
+          const nivelClone = liClone.querySelector('.nivel-select, .nivel-readonly');
+          if(nivelClone) nivelClone.remove();
+          const aluno = liClone.textContent.replace(/\s+/g,' ').trim();
+          const nivelEl = li.querySelector('.nivel-select, .nivel-readonly');
+          const nivel = nivelValue(nivelEl);
+          linhas.push([categoria, professor, aluno, nivel]);
+        });
+      });
+    });
+    const csv = linhas.map(l => l.map(campo => `"${String(campo).replace(/"/g,'""')}"`).join(',')).join('\n');
+    const blob = new Blob(['\uFEFF' + csv], {type:'text/csv;charset=utf-8;'});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'aubrick_niveis.csv';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  }
+
+  // ---- Importar níveis de um arquivo .json (formato: categoria, professor, aluno, nivel) ----
+  function importarNiveis(event){
+    const file = event.target.files[0];
+    if(!file) return;
+    const reader = new FileReader();
+    reader.onload = function(e){
+      try{
+        const dados = JSON.parse(e.target.result);
+        let aplicados = 0;
+        dados.forEach(item=>{
+          document.querySelectorAll('.category-section').forEach(sectionEl=>{
+            const categoria = sectionEl.querySelector('.cat-title span')?.textContent.trim() || '';
+            if(categoria !== item.categoria) return;
+            sectionEl.querySelectorAll('.teacher-card').forEach(cardEl=>{
+              const professor = cardEl.querySelector('.teacher-header h3')?.textContent.trim() || '';
+              if(professor !== item.professor) return;
+              cardEl.querySelectorAll('ul.student-list > li').forEach(li=>{
+                const liClone = li.cloneNode(true);
+                const selClone = liClone.querySelector('.nivel-select');
+                if(selClone) selClone.remove();
+                const aluno = liClone.textContent.replace(/\s+/g,' ').trim();
+                if(aluno === item.aluno){
+                  const sel = li.querySelector('.nivel-select');
+                  if(sel && item.nivel){
+                    sel.value = item.nivel;
+                    saveNivel(sel);
+                    aplicados++;
+                  }
+                }
+              });
+            });
+          });
+        });
+        alert(`Níveis importados com sucesso! (${aplicados} alunos atualizados)`);
+      }catch(err){
+        alert('Não foi possível ler o arquivo. Verifique se é um arquivo exportado por esta página.');
+        console.error(err);
+      }
+    };
+    reader.readAsText(file);
+    event.target.value = '';
+  }
+
+</script>
+</body>
+</html>

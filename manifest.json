@@ -1,0 +1,17 @@
+{
+  "name": "Colégio Aubrick — Turmas de Voleibol",
+  "short_name": "Aubrick Turmas",
+  "description": "Gestão das turmas de voleibol do Colégio Aubrick — 6º ano, 7º ano A/B, 8º ano e 9º ao médio",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#0d3b8c",
+  "theme_color": "#0d3b8c",
+  "icons": [
+    { "src": "icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "icon-192-maskable.png", "sizes": "192x192", "type": "image/png", "purpose": "maskable" },
+    { "src": "icon-512-maskable.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}
