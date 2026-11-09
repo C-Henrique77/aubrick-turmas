@@ -129,7 +129,9 @@
   body.modo-admin .student-actions,
   body.modo-admin .professor-edit-btn,
   body.modo-admin .professor-remove-btn,
-  body.modo-admin .config-row{
+  body.modo-admin .config-row,
+  body.modo-admin .config-section-admin-hide,
+  body.modo-admin .convocacao-admin-hide{
     display:none !important;
   }
   .tabs{
@@ -1258,6 +1260,111 @@
     font-size:0.9em;
     white-space:nowrap;
   }
+  .promover-aviso{
+    font-size:0.82em;
+    color:#8a8fa3;
+    margin:0 0 10px;
+    line-height:1.4;
+  }
+  .promover-row{
+    align-items:center;
+  }
+  .promover-row select{
+    flex:1;
+    border:1px solid #d5dbeb;
+    border-radius:6px;
+    padding:7px 8px;
+    font-size:0.85em;
+  }
+  .promover-seta{
+    font-weight:700;
+    color:var(--amarelo);
+  }
+
+  /* ---- Convocação ---- */
+  .modal-convocacao{
+    max-width:460px;
+    text-align:left;
+  }
+  .convocacao-lista-salvas{
+    list-style:none;
+    margin:0 0 14px;
+    padding:0;
+    max-height:220px;
+    overflow-y:auto;
+  }
+  .convocacao-item{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    gap:8px;
+    padding:8px 10px;
+    border:1px solid #e0e4ee;
+    border-radius:8px;
+    margin-bottom:6px;
+    font-size:0.9em;
+  }
+  .convocacao-item-info{
+    display:flex;
+    flex-direction:column;
+    gap:2px;
+  }
+  .convocacao-item-info strong{
+    color:#072a5e;
+  }
+  .convocacao-item-info span{
+    color:#8a8fa3;
+    font-size:0.85em;
+  }
+  .convocacao-item-btns button{
+    background:none;
+    border:none;
+    cursor:pointer;
+    font-size:1em;
+    padding:4px 6px;
+  }
+  #btnNovaConvocacao{
+    display:block;
+    width:100%;
+    margin-bottom:14px;
+    background:var(--azul2);
+    color:white;
+    border:none;
+    border-radius:6px;
+    padding:9px 0;
+    font-weight:700;
+    cursor:pointer;
+  }
+  #convocacaoFormWrap input,
+  #convocacaoFormWrap textarea{
+    width:100%;
+    box-sizing:border-box;
+    border:1px solid #d5dbeb;
+    border-radius:6px;
+    padding:7px 10px;
+    font-size:0.9em;
+    margin-bottom:10px;
+  }
+  .convocacao-check-lista{
+    list-style:none;
+    margin:0 0 14px;
+    padding:0;
+    max-height:220px;
+    overflow-y:auto;
+    border:1px solid #e0e4ee;
+    border-radius:8px;
+  }
+  .convocacao-check-item{
+    display:flex;
+    align-items:center;
+    gap:8px;
+    padding:7px 10px;
+    border-bottom:1px solid #eef1f8;
+    font-size:0.9em;
+  }
+  .convocacao-check-item:last-child{
+    border-bottom:none;
+  }
   .professores-lista{
     list-style:none;
     margin:0 0 10px;
@@ -1468,6 +1575,28 @@
         <button type="button" onclick="adicionarProfessor()">+ Adicionar</button>
       </div>
     </div>
+    <div class="config-section config-section-admin-hide">
+      <label class="config-label">📈 Promover turma (passagem de ano)</label>
+      <p class="promover-aviso">Move TODAS as alunas de uma turma para outra de uma vez. Use no fim do ano, por exemplo para passar o 6º ano inteiro para o 7º ano A.</p>
+      <div class="config-row promover-row">
+        <select id="promoverOrigemSelect">
+          <option value="master">6º ano</option>
+          <option value="mini">7º ano A</option>
+          <option value="sub13">7º ano B</option>
+          <option value="sub15">8º ano</option>
+          <option value="sub17">9º ao médio</option>
+        </select>
+        <span class="promover-seta">→</span>
+        <select id="promoverDestinoSelect">
+          <option value="master">6º ano</option>
+          <option value="mini" selected>7º ano A</option>
+          <option value="sub13">7º ano B</option>
+          <option value="sub15">8º ano</option>
+          <option value="sub17">9º ao médio</option>
+        </select>
+      </div>
+      <button type="button" class="transfer-confirm-btn" onclick="promoverTurmaCompleta()">📈 Promover turma inteira</button>
+    </div>
     <button type="button" class="modal-close-btn" onclick="fecharModalConfiguracoes()">Fechar</button>
   </div>
 </div>
@@ -1477,16 +1606,15 @@
     <p class="transfer-aluno-nome" id="transferAlunoNome"></p>
     <label class="transfer-label">Categoria</label>
     <select id="transferCategoriaSelect" class="transfer-select">
-      <option value="master">Master</option>
-      <option value="mini">Mini</option>
-      <option value="sub13">Sub-13</option>
-      <option value="sub15">Sub-15</option>
-      <option value="sub17">Sub-17</option>
+      <option value="master">6º ano</option>
+      <option value="mini">7º ano A</option>
+      <option value="sub13">7º ano B</option>
+      <option value="sub15">8º ano</option>
+      <option value="sub17">9º ao médio</option>
     </select>
     <label class="transfer-label">Professor</label>
     <div class="transfer-professor-toggle">
       <button type="button" class="filter-btn active" data-professor="rafa" onclick="selecionarProfessorTransferencia('rafa', this)">Rafa</button>
-      <button type="button" class="filter-btn" data-professor="manoel" onclick="selecionarProfessorTransferencia('manoel', this)">Manoel</button>
     </div>
     <button type="button" class="transfer-confirm-btn" onclick="confirmarTransferencia()">Transferir</button>
     <button type="button" class="modal-close-btn" onclick="fecharModalTransferir()">Cancelar</button>
@@ -1537,6 +1665,36 @@
       <table class="relatorio-historico" id="relatorioHistoricoTabela"></table>
     </div>
     <button type="button" class="modal-close-btn" onclick="fecharModalRelatorio()">Fechar</button>
+  </div>
+</div>
+<div id="modalConvocacao" class="modal-overlay" style="display:none;" onclick="if(event.target===this) fecharModalConvocacao();">
+  <div class="modal-categorias modal-convocacao">
+    <h3>📋 Convocação — <span id="convocacaoTurmaNome"></span></h3>
+
+    <div id="convocacaoListaWrap">
+      <label class="transfer-label">Convocações salvas</label>
+      <ul class="convocacao-lista-salvas" id="convocacaoListaSalvas"></ul>
+      <button type="button" id="btnNovaConvocacao" class="convocacao-admin-hide" onclick="abrirFormNovaConvocacao()">+ Nova convocação</button>
+    </div>
+
+    <div id="convocacaoFormWrap" style="display:none;">
+      <label class="transfer-label">Título do evento</label>
+      <input id="convocacaoTitulo" type="text" placeholder="ex: Jogo amistoso vs Colégio X"/>
+      <label class="transfer-label">Data</label>
+      <input id="convocacaoData" type="date"/>
+      <label class="transfer-label">Horário</label>
+      <input id="convocacaoHorario" type="time"/>
+      <label class="transfer-label">Local</label>
+      <input id="convocacaoLocal" type="text" placeholder="ex: Ginásio do colégio"/>
+      <label class="transfer-label">Observações (opcional)</label>
+      <textarea id="convocacaoObs" rows="2" placeholder="ex: levar uniforme completo"></textarea>
+      <label class="transfer-label">Alunas convocadas</label>
+      <ul class="convocacao-check-lista" id="convocacaoCheckLista"></ul>
+      <button type="button" class="transfer-confirm-btn" onclick="salvarConvocacao()">💾 Salvar convocação</button>
+      <button type="button" class="modal-close-btn" onclick="cancelarFormConvocacao()">Cancelar</button>
+    </div>
+
+    <button type="button" class="modal-close-btn" onclick="fecharModalConvocacao()">Fechar</button>
   </div>
 </div>
 <div id="modalFoto" class="modal-overlay" style="display:none;" onclick="if(event.target===this) fecharModalFoto();">
@@ -2230,6 +2388,8 @@
 
   // ---- Foto do aluno (exclusivo do app instalado — PWA) ----
   let fotosAlunos = {};   // { studentId: 'data:image/jpeg;base64,...' } — comprimida antes de guardar
+  let convocacoes = {};   // { "sectionId-professorId": [{id, titulo, data, horario, local, observacoes, alunos:[{id,nome,nascimento,camisa}], criadoEm}, ...] }
+  let turmaAtualConvocacao = null;
   let alunoAtualFoto = null;
   const FOTO_MAX_LADO = 240;           // px — maior lado da miniatura depois de redimensionada
   const FOTO_QUALIDADE = 0.6;          // qualidade do JPEG (0 a 1)
@@ -2295,7 +2455,7 @@
   }
 
   function dadosPadraoUnidade(){
-    return { campos:{}, extras:[], removidos:[], renomeados:{}, professoresExtras:[], professoresRenomeados:{}, professoresExcluidos:[], horariosTurma:{}, presencas:{}, fotosAlunos:{} };
+    return { campos:{}, extras:[], removidos:[], renomeados:{}, professoresExtras:[], professoresRenomeados:{}, professoresExcluidos:[], horariosTurma:{}, presencas:{}, fotosAlunos:{}, convocacoes:{} };
   }
 
   function capturarDadosUnidadeAtual(){
@@ -2309,7 +2469,8 @@
       professoresExcluidos: professoresExcluidos,
       horariosTurma: horariosTurma,
       presencas: presencas,
-      fotosAlunos: fotosAlunos
+      fotosAlunos: fotosAlunos,
+      convocacoes: convocacoes
     };
   }
 
@@ -2436,7 +2597,8 @@
       toolbar.innerHTML =
         '<button type="button" class="turma-btn turma-horario-btn" onclick="abrirModalHorarios(\'' + sectionId + '\',\'' + professorId + '\')">🗓️ Horários</button>' +
         '<button type="button" class="turma-btn turma-chamada-btn" onclick="abrirModalChamada(\'' + sectionId + '\',\'' + professorId + '\')">✅ Chamada</button>' +
-        '<button type="button" class="turma-btn turma-relatorio-btn" onclick="abrirModalRelatorio(\'' + sectionId + '\',\'' + professorId + '\')">📊 Relatório</button>';
+        '<button type="button" class="turma-btn turma-relatorio-btn" onclick="abrirModalRelatorio(\'' + sectionId + '\',\'' + professorId + '\')">📊 Relatório</button>' +
+        '<button type="button" class="turma-btn turma-convocacao-btn" onclick="abrirModalConvocacao(\'' + sectionId + '\',\'' + professorId + '\')">📋 Convocação</button>';
       header.after(toolbar);
     });
   }
@@ -2632,6 +2794,212 @@
     tabela.innerHTML = html;
   }
 
+  // ---- Convocação ----
+  function formatarDataBR(iso){
+    if(!iso) return '';
+    const partes = iso.split('-');
+    if(partes.length !== 3) return iso;
+    return partes[2] + '/' + partes[1] + '/' + partes[0];
+  }
+
+  function gerarIdConvocacao(){
+    return 'conv' + Date.now() + Math.floor(Math.random()*1000);
+  }
+
+  function abrirModalConvocacao(sectionId, professorId){
+    turmaAtualConvocacao = { sectionId, professorId };
+    document.getElementById('convocacaoTurmaNome').textContent = nomeTurmaExibicao(sectionId, professorId);
+    document.getElementById('convocacaoFormWrap').style.display = 'none';
+    document.getElementById('convocacaoListaWrap').style.display = 'block';
+    renderizarListaConvocacoesSalvas();
+    document.getElementById('modalConvocacao').style.display = 'flex';
+  }
+
+  function fecharModalConvocacao(){
+    document.getElementById('modalConvocacao').style.display = 'none';
+    turmaAtualConvocacao = null;
+  }
+
+  function renderizarListaConvocacoesSalvas(){
+    if(!turmaAtualConvocacao) return;
+    const key = chaveTurma(turmaAtualConvocacao.sectionId, turmaAtualConvocacao.professorId);
+    const lista = convocacoes[key] || [];
+    const ul = document.getElementById('convocacaoListaSalvas');
+    if(lista.length === 0){
+      ul.innerHTML = '<li class="horario-vazio">Nenhuma convocação salva ainda.</li>';
+      return;
+    }
+    ul.innerHTML = lista.slice().reverse().map(c=>
+      '<li class="convocacao-item">' +
+        '<div class="convocacao-item-info"><strong>' + escapeHtml(c.titulo || 'Convocação') + '</strong>' +
+          '<span>' + (c.data ? formatarDataBR(c.data) : 'sem data') + ' · ' + c.alunos.length + ' convocada(s)</span></div>' +
+        '<div class="convocacao-item-btns">' +
+          '<button type="button" onclick="visualizarConvocacao(\'' + c.id + '\')" title="Ver / imprimir">👁️</button>' +
+          '<button type="button" class="convocacao-admin-hide" onclick="excluirConvocacao(\'' + c.id + '\')" title="Excluir">🗑️</button>' +
+        '</div>' +
+      '</li>'
+    ).join('');
+  }
+
+  function abrirFormNovaConvocacao(){
+    if(!turmaAtualConvocacao) return;
+    document.getElementById('convocacaoTitulo').value = '';
+    document.getElementById('convocacaoData').value = '';
+    document.getElementById('convocacaoHorario').value = '';
+    document.getElementById('convocacaoLocal').value = '';
+    document.getElementById('convocacaoObs').value = '';
+    renderizarCheckListaConvocacao();
+    document.getElementById('convocacaoListaWrap').style.display = 'none';
+    document.getElementById('convocacaoFormWrap').style.display = 'block';
+  }
+
+  function cancelarFormConvocacao(){
+    document.getElementById('convocacaoFormWrap').style.display = 'none';
+    document.getElementById('convocacaoListaWrap').style.display = 'block';
+  }
+
+  function renderizarCheckListaConvocacao(){
+    if(!turmaAtualConvocacao) return;
+    const alunos = alunosDaTurma(turmaAtualConvocacao.sectionId, turmaAtualConvocacao.professorId);
+    const ul = document.getElementById('convocacaoCheckLista');
+    if(alunos.length === 0){
+      ul.innerHTML = '<li class="horario-vazio">Nenhum aluno nesta turma.</li>';
+      return;
+    }
+    ul.innerHTML = alunos.map(a=>
+      '<li class="convocacao-check-item">' +
+        '<input type="checkbox" id="convcheck-' + a.id + '" value="' + a.id + '" checked/>' +
+        '<label for="convcheck-' + a.id + '">' + escapeHtml(a.nome) + '</label>' +
+      '</li>'
+    ).join('');
+  }
+
+  function salvarConvocacao(){
+    if(sessao.role !== 'unidade') return; // admin nunca grava nada
+    if(!turmaAtualConvocacao) return;
+    const titulo = document.getElementById('convocacaoTitulo').value.trim();
+    const data = document.getElementById('convocacaoData').value;
+    const horario = document.getElementById('convocacaoHorario').value;
+    const local = document.getElementById('convocacaoLocal').value.trim();
+    const observacoes = document.getElementById('convocacaoObs').value.trim();
+
+    const marcados = Array.from(document.querySelectorAll('#convocacaoCheckLista input[type="checkbox"]:checked')).map(cb=>cb.value);
+    if(marcados.length === 0){
+      alert('Selecione pelo menos uma aluna para a convocação.');
+      return;
+    }
+
+    const { sectionId, professorId } = turmaAtualConvocacao;
+    const card = turmaCardEl(sectionId, professorId);
+    const alunosSelecionados = marcados.map(id=>{
+      const li = card ? card.querySelector('li.student-row[data-id="' + id + '"]') : null;
+      const nome = li ? (li.querySelector('.student-name') || {}).textContent.trim() : '';
+      const nascEl = li ? li.querySelector('.nasc-input') : null;
+      const camisaEl = li ? li.querySelector('.camisa-input') : null;
+      return {
+        id,
+        nome,
+        nascimento: nascEl ? nascEl.value : '',
+        camisa: camisaEl ? camisaEl.value : ''
+      };
+    });
+
+    const conv = {
+      id: gerarIdConvocacao(),
+      titulo,
+      data,
+      horario,
+      local,
+      observacoes,
+      alunos: alunosSelecionados,
+      criadoEm: new Date().toISOString()
+    };
+
+    const key = chaveTurma(sectionId, professorId);
+    if(!convocacoes[key]) convocacoes[key] = [];
+    convocacoes[key].push(conv);
+
+    cancelarFormConvocacao();
+    renderizarListaConvocacoesSalvas();
+    salvarLocalBackup();
+    salvarNoBancoDebounced();
+  }
+
+  function excluirConvocacao(id){
+    if(sessao.role !== 'unidade') return; // admin nunca grava nada
+    if(!turmaAtualConvocacao) return;
+    const confirmado = window.confirm('Excluir esta convocação? Essa ação não pode ser desfeita.');
+    if(!confirmado) return;
+    const key = chaveTurma(turmaAtualConvocacao.sectionId, turmaAtualConvocacao.professorId);
+    if(!convocacoes[key]) return;
+    convocacoes[key] = convocacoes[key].filter(c=>c.id !== id);
+    renderizarListaConvocacoesSalvas();
+    salvarLocalBackup();
+    salvarNoBancoDebounced();
+  }
+
+  function encontrarConvocacaoPorId(id){
+    for(const key of Object.keys(convocacoes)){
+      const achada = (convocacoes[key] || []).find(c=>c.id === id);
+      if(achada) return { conv: achada, key };
+    }
+    return null;
+  }
+
+  function gerarHtmlConvocacao(conv, nomeTurma){
+    const dataFmt = conv.data ? formatarDataBR(conv.data) : '—';
+    const linhasAlunas = conv.alunos.map((a,i)=>
+      '<tr><td>' + (i+1) + '</td><td>' + escapeHtml(a.nome) + '</td><td>' + (a.camisa ? escapeHtml(a.camisa) : '—') + '</td><td>' + (a.nascimento ? formatarDataBR(a.nascimento) : '—') + '</td></tr>'
+    ).join('');
+    return '<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"/>' +
+      '<title>Convocação — ' + escapeHtml(conv.titulo || nomeTurma) + '</title>' +
+      '<style>' +
+      'body{font-family:"Segoe UI",Arial,sans-serif;color:#1a1a2e;max-width:720px;margin:32px auto;padding:0 20px;}' +
+      '.no-print{position:sticky;top:0;background:#f4f6fb;padding:10px 0;margin-bottom:10px;text-align:right;}' +
+      '.no-print button{background:#072a5e;color:white;border:none;border-radius:6px;padding:10px 18px;font-weight:700;cursor:pointer;font-size:0.95em;}' +
+      'header{text-align:center;margin-bottom:24px;border-bottom:3px solid #ff7900;padding-bottom:16px;}' +
+      'header h1{color:#072a5e;margin:0 0 4px;font-size:1.6em;}' +
+      'header p{margin:2px 0;color:#555;}' +
+      '.info-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px 20px;margin:18px 0;font-size:0.95em;}' +
+      '.info-grid div strong{color:#072a5e;}' +
+      'table{width:100%;border-collapse:collapse;margin-top:14px;}' +
+      'th,td{border:1px solid #d5dbeb;padding:8px 10px;text-align:left;font-size:0.9em;}' +
+      'th{background:#072a5e;color:white;}' +
+      'tr:nth-child(even){background:#f4f6fb;}' +
+      '.obs{margin-top:18px;padding:12px 14px;background:#fff7ee;border-left:4px solid #ff7900;font-size:0.9em;}' +
+      'footer{margin-top:30px;text-align:center;font-size:0.8em;color:#999;}' +
+      '@media print{ .no-print{display:none !important;} body{margin:0;padding:16px;} }' +
+      '</style></head><body>' +
+      '<div class="no-print"><button onclick="window.print()">🖨️ Imprimir / Salvar como PDF</button></div>' +
+      '<header><h1>' + escapeHtml(conv.titulo || 'Convocação') + '</h1><p>Colégio Aubrick — ' + escapeHtml(nomeTurma) + '</p></header>' +
+      '<div class="info-grid">' +
+        '<div><strong>Data:</strong> ' + dataFmt + '</div>' +
+        '<div><strong>Horário:</strong> ' + (conv.horario || '—') + '</div>' +
+        '<div><strong>Local:</strong> ' + escapeHtml(conv.local || '—') + '</div>' +
+        '<div><strong>Total de convocadas:</strong> ' + conv.alunos.length + '</div>' +
+      '</div>' +
+      (conv.observacoes ? '<div class="obs"><strong>Observações:</strong> ' + escapeHtml(conv.observacoes) + '</div>' : '') +
+      '<table><thead><tr><th>#</th><th>Nome</th><th>Nº</th><th>Nascimento</th></tr></thead><tbody>' + linhasAlunas + '</tbody></table>' +
+      '<footer>Gerado em ' + new Date().toLocaleString('pt-BR') + '</footer>' +
+      '</body></html>';
+  }
+
+  function visualizarConvocacao(id){
+    const achada = encontrarConvocacaoPorId(id);
+    if(!achada) return;
+    const [sectionId, professorId] = achada.key.split('-');
+    const nomeTurma = nomeTurmaExibicao(sectionId, professorId);
+    const html = gerarHtmlConvocacao(achada.conv, nomeTurma);
+    const win = window.open('', '_blank');
+    if(!win){
+      alert('Não foi possível abrir a visualização — verifique se o navegador bloqueou pop-ups.');
+      return;
+    }
+    win.document.open();
+    win.document.write(html);
+    win.document.close();
+  }
+
   function aplicarRenomeacoesProfessores(){
     Object.keys(professoresRenomeados).forEach(id=>{
       aplicarNomeProfessorNaTela(id, professoresRenomeados[id]);
@@ -2695,6 +3063,7 @@
     horariosTurma = dadosUnidade.horariosTurma || {};
     presencas = dadosUnidade.presencas || {};
     fotosAlunos = dadosUnidade.fotosAlunos || {};
+    convocacoes = dadosUnidade.convocacoes || {};
 
     renderizarTodosProfessoresExtras();
     aplicarRenomeacoesProfessores();
@@ -3292,21 +3661,40 @@
     const novaCategoria = document.getElementById('transferCategoriaSelect').value;
     const novoProfessor = professorSelecionadoTransferencia;
 
+    const transferido = executarTransferenciaLi(li, novaCategoria, novoProfessor);
+    if(transferido){
+      montarBotoesAcao();
+      promoverNascimentoParaLinha();
+      montarBotoesMais();
+      montarBotoesFoto();
+      salvarLocalBackup();
+      atualizarContadores();
+      salvarNoBancoDebounced();
+    }
+
+    fecharModalTransferir();
+  }
+
+  // Move um <li> de aluno (student-row) para outra categoria/professor,
+  // preservando todos os campos, presenças e foto. Usado tanto pela
+  // transferência individual (confirmarTransferencia) quanto pela promoção
+  // em massa de uma turma inteira (promoverTurmaCompleta). Retorna o novo
+  // <li> criado no destino, ou null se nada foi movido (mesmo
+  // destino/origem, ou card de destino inexistente).
+  function executarTransferenciaLi(li, novaCategoria, novoProfessor){
     const sectionAtual = li.closest('.category-section');
     const cardAtual = li.closest('.teacher-card');
     const categoriaAtual = sectionAtual ? sectionAtual.id : null;
     const professorAtual = (cardAtual ? Array.from(cardAtual.classList).find(c => c !== 'teacher-card' && c !== 'hidden-by-filter') : null) || 'rafa';
 
     if(categoriaAtual === novaCategoria && professorAtual === novoProfessor){
-      fecharModalTransferir();
-      return;
+      return null;
     }
 
     const novaSection = document.getElementById(novaCategoria);
     const novoCard = novaSection ? novaSection.querySelector('.teacher-card.' + novoProfessor) : null;
     if(!novoCard){
-      fecharModalTransferir();
-      return;
+      return null;
     }
 
     // Coleta os dados atuais do aluno antes de recriar a linha no destino
@@ -3349,10 +3737,6 @@
     if(novaCategoria === 'master'){
       novoLi.querySelectorAll('.liga-field').forEach(el=>el.remove());
     }
-    montarBotoesAcao();
-    promoverNascimentoParaLinha();
-    montarBotoesMais();
-    montarBotoesFoto();
 
     const novoNivelEl = novoLi.querySelector('.nivel-select');
     if(novoNivelEl) novoNivelEl.value = dados.nivel;
@@ -3367,10 +3751,56 @@
 
     extrasAlunos.push({ uid: novoId, sectionId: novaCategoria, professor: novoProfessor, nome });
 
-    fecharModalTransferir();
-    salvarLocalBackup();
+    return novoLi;
+  }
+
+  // ---- Promoção em massa de turma (passagem de ano) ----
+  // Move TODOS os alunos de uma categoria (ex: 6º ano) para outra (ex: 7º
+  // ano A), sempre com o professor "rafa" (único professor do Aubrick).
+  // Usado no fim do ano para passar a turma inteira de uma vez.
+  function promoverTurmaCompleta(){
+    if(sessao.role !== 'unidade') return; // admin nunca grava nada
+    const origemSel = document.getElementById('promoverOrigemSelect');
+    const destinoSel = document.getElementById('promoverDestinoSelect');
+    if(!origemSel || !destinoSel) return;
+    const origem = origemSel.value;
+    const destino = destinoSel.value;
+
+    if(origem === destino){
+      alert('Escolha uma turma de origem e uma de destino diferentes.');
+      return;
+    }
+
+    const origemCard = document.querySelector('#' + origem + ' .teacher-card.rafa');
+    const lis = origemCard ? Array.from(origemCard.querySelectorAll('li.student-row')) : [];
+    if(lis.length === 0){
+      alert('Não há alunos nessa turma para promover.');
+      return;
+    }
+
+    const nomeOrigem = nomeTurmaExibicao(origem, 'rafa');
+    const nomeDestino = nomeTurmaExibicao(destino, 'rafa');
+    const confirmado = window.confirm(
+      'Promover ' + lis.length + ' aluna(s) de "' + nomeOrigem + '" para "' + nomeDestino + '"?\n\n' +
+      'Essa ação move todas as alunas dessa turma de uma vez e não pode ser desfeita automaticamente.'
+    );
+    if(!confirmado) return;
+
+    let movidas = 0;
+    lis.forEach(li=>{
+      const resultado = executarTransferenciaLi(li, destino, 'rafa');
+      if(resultado) movidas++;
+    });
+
+    montarBotoesAcao();
+    promoverNascimentoParaLinha();
+    montarBotoesMais();
+    montarBotoesFoto();
     atualizarContadores();
+    salvarLocalBackup();
     salvarNoBancoDebounced();
+
+    alert(movidas + ' aluna(s) promovida(s) de "' + nomeOrigem + '" para "' + nomeDestino + '" com sucesso.');
   }
 
   function aplicarRenomeacoes(){
